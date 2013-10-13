@@ -2,7 +2,8 @@ package dsql
 
 import (
 	"errors"
-	"fmt"
+	"log"
+
 	"io"
 
 	"regexp"
@@ -38,7 +39,14 @@ type Lexer struct {
 	tok rune
 }
 
-func (l *Lexer) String(t token) string {
+func (l *Lexer) Names(tokens []token) (names []string) {
+	for _, t := range tokens {
+		names = append(names, l.Name(t))
+	}
+	return names
+}
+
+func (l *Lexer) Name(t token) string {
 	var name string
 	switch t {
 	case TokKeyword:
@@ -62,7 +70,7 @@ func (l *Lexer) String(t token) string {
 	case TokUnknown:
 		name = "Unknown"
 	}
-	return fmt.Sprintf("%s (%s)", name, l.NextString())
+	return name
 }
 
 func (l *Lexer) Tokens() (tokens []token) {
@@ -78,21 +86,28 @@ func (l *Lexer) Tokens() (tokens []token) {
 }
 
 func (l *Lexer) Next() (t token) {
-	raw := l.scn.Scan()
-
-	switch raw {
+	switch l.scn.Scan() {
 	case scanner.Ident:
 		if l.isKeyword() {
 			t = TokKeyword
 		} else {
 			t = TokId
 		}
+	case scanner.Float, scanner.Int:
+		t = TokNumber
+	case scanner.String:
+		t = TokString
 	case scanner.EOF:
 		t = TokEOF
 	default:
 		if l.isWildcard() {
 			t = TokWildcard
+		} else if l.isComma() {
+			t = TokComma
+		} else if l.isOp() {
+			t = TokOp
 		} else {
+			log.Print("unknown: ", l.NextString())
 			t = TokUnknown
 		}
 	}
@@ -100,7 +115,7 @@ func (l *Lexer) Next() (t token) {
 }
 
 func (l *Lexer) isKeyword() bool {
-	matched, err := regexp.MatchString("select|insert|create|update|delete|from|where", l.NextString())
+	matched, err := regexp.MatchString("select|insert|create|update|delete|from|where|and", l.NextString())
 	if err != nil {
 		return false
 	}
@@ -113,6 +128,18 @@ func (l *Lexer) isId() bool {
 
 func (l *Lexer) isWildcard() bool {
 	return l.NextString() == "*"
+}
+
+func (l *Lexer) isComma() bool {
+	return l.NextString() == ","
+}
+
+func (l *Lexer) isOp() bool {
+	matched, err := regexp.MatchString("=|!=|>|<", l.NextString())
+	if err != nil {
+		return false
+	}
+	return matched
 }
 
 func (l *Lexer) scanString(raw rune) token {
