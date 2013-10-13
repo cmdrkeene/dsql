@@ -2,26 +2,27 @@ package dsql
 
 import (
 	"errors"
-	"strings"
-
+	"fmt"
 	"io"
 
+	"regexp"
+	"strings"
 	"text/scanner"
 )
 
-type token int
+type token rune
 
 const (
-	TokCreate token = iota
-	TokSelect
-	TokInsert
-	TokUpdate
-	TokDelete
-	TokFrom
-	TokWhere
-	TokEqual
-	TokNotEqual // !=, <>
+	TokKeyword token = iota
+	TokId
+	TokWildcard
+	TokString
+	TokNumber
+	TokOp
+	TokComma
+	TokSemicolon
 	TokEOF
+	TokUnknown
 )
 
 var ErrUnexpectedToken = errors.New("lexer: unexpected token")
@@ -37,22 +38,87 @@ type Lexer struct {
 	tok rune
 }
 
-func (l *Lexer) Next() (t token, err error) {
-	l.scn.Scan()
-	switch strings.ToLower(l.scn.TokenText()) {
-	case "select":
-		t = TokSelect
-	case "from":
-		t = TokFrom
-	case "where":
-		t = TokWhere
+func (l *Lexer) String(t token) string {
+	var name string
+	switch t {
+	case TokKeyword:
+		name = "Keyword"
+	case TokId:
+		name = "Id"
+	case TokWildcard:
+		name = "Wildcard"
+	case TokString:
+		name = "String"
+	case TokNumber:
+		name = "Number"
+	case TokOp:
+		name = "Op"
+	case TokComma:
+		name = "Comma"
+	case TokSemicolon:
+		name = "Semicolon"
+	case TokEOF:
+		name = "EOF"
+	case TokUnknown:
+		name = "Unknown"
+	}
+	return fmt.Sprintf("%s (%s)", name, l.NextString())
+}
+
+func (l *Lexer) Tokens() (tokens []token) {
+	var t token
+	for {
+		t = l.Next()
+		tokens = append(tokens, t)
+		if t == TokEOF {
+			break
+		}
+	}
+	return tokens
+}
+
+func (l *Lexer) Next() (t token) {
+	raw := l.scn.Scan()
+
+	switch raw {
+	case scanner.Ident:
+		if l.isKeyword() {
+			t = TokKeyword
+		} else {
+			t = TokId
+		}
+	case scanner.EOF:
+		t = TokEOF
 	default:
-		err = ErrUnexpectedToken
+		if l.isWildcard() {
+			t = TokWildcard
+		} else {
+			t = TokUnknown
+		}
 	}
+	return t
+}
 
+func (l *Lexer) isKeyword() bool {
+	matched, err := regexp.MatchString("select|insert|create|update|delete|from|where", l.NextString())
 	if err != nil {
-		return 0, err
+		return false
 	}
+	return matched
+}
 
-	return t, nil
+func (l *Lexer) isId() bool {
+	return true
+}
+
+func (l *Lexer) isWildcard() bool {
+	return l.NextString() == "*"
+}
+
+func (l *Lexer) scanString(raw rune) token {
+	return TokEOF
+}
+
+func (l *Lexer) NextString() string {
+	return strings.ToLower(l.scn.TokenText())
 }
