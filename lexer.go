@@ -2,53 +2,10 @@ package dsql
 
 import (
 	"io"
-
 	"regexp"
 	"strings"
 	"text/scanner"
 )
-
-type token rune
-
-const (
-	Keyword token = iota
-	Identifier
-	Wildcard
-	String
-	Number
-	Operator
-	Comma
-	Semicolon
-	EOF
-	Unknown
-)
-
-// shorthand
-const (
-	K = Keyword
-	I = Identifier
-	W = Wildcard
-	N = Number
-	S = String
-	O = Operator
-	C = Comma
-	M = Semicolon
-	E = EOF
-	U = Unknown
-)
-
-var TokenNames = map[token]string{
-	Keyword:    "Keyword",
-	Identifier: "Identifier",
-	Wildcard:   "Wildcard",
-	String:     "String",
-	Number:     "Number",
-	Operator:   "Operator",
-	Comma:      "Comma",
-	Semicolon:  "Semicolon",
-	EOF:        "EOF",
-	Unknown:    "Unkown",
-}
 
 func NewLexer(source io.Reader) *Lexer {
 	l := &Lexer{}
@@ -61,15 +18,8 @@ type Lexer struct {
 	tok rune
 }
 
-func (l *Lexer) Names(tokens []token) (names []string) {
-	for _, t := range tokens {
-		names = append(names, TokenNames[t])
-	}
-	return names
-}
-
-func (l *Lexer) Tokens() (tokens []token) {
-	var t token
+func (l *Lexer) Tokens() (tokens []Token) {
+	var t Token
 	for {
 		t = l.Next()
 		tokens = append(tokens, t)
@@ -80,11 +30,21 @@ func (l *Lexer) Tokens() (tokens []token) {
 	return tokens
 }
 
-func (l *Lexer) Next() (t token) {
-	switch l.scn.Scan() {
+func (l *Lexer) Peek() (t Token) {
+	return l.tokenize(l.scn.Peek())
+}
+
+func (l *Lexer) Next() (t Token) {
+	return l.tokenize(l.scn.Scan())
+}
+
+func (l *Lexer) tokenize(r rune) (t Token) {
+	switch r {
 	case scanner.Ident:
 		if l.isKeyword() {
 			t = Keyword
+		} else if l.isType() {
+			t = Type
 		} else {
 			t = Identifier
 		}
@@ -99,8 +59,14 @@ func (l *Lexer) Next() (t token) {
 			t = Wildcard
 		} else if l.isComma() {
 			t = Comma
+		} else if l.isSemicolon() {
+			t = Semicolon
 		} else if l.isOperator() {
 			t = Operator
+		} else if l.isLeftParen() {
+			t = LeftParen
+		} else if l.isRightParen() {
+			t = RightParen
 		} else {
 			t = Unknown
 		}
@@ -109,7 +75,15 @@ func (l *Lexer) Next() (t token) {
 }
 
 func (l *Lexer) isKeyword() bool {
-	matched, err := regexp.MatchString("select|insert|create|update|delete|from|where|and", l.NextString())
+	matched, err := regexp.MatchString(Keywords, l.Text())
+	if err != nil {
+		return false
+	}
+	return matched
+}
+
+func (l *Lexer) isType() bool {
+	matched, err := regexp.MatchString(Types, l.Text())
 	if err != nil {
 		return false
 	}
@@ -121,21 +95,34 @@ func (l *Lexer) isId() bool {
 }
 
 func (l *Lexer) isWildcard() bool {
-	return l.NextString() == "*"
+	return l.Text() == "*"
 }
 
 func (l *Lexer) isComma() bool {
-	return l.NextString() == ","
+	return l.Text() == ","
+}
+
+func (l *Lexer) isSemicolon() bool {
+	return l.Text() == ";"
+}
+
+func (l *Lexer) isLeftParen() bool {
+	return l.Text() == "("
+}
+
+func (l *Lexer) isRightParen() bool {
+	return l.Text() == ")"
 }
 
 func (l *Lexer) isOperator() bool {
-	matched, err := regexp.MatchString("=|!=|>|<", l.NextString())
+	matched, err := regexp.MatchString(Operators, l.Text())
 	if err != nil {
 		return false
 	}
 	return matched
 }
 
-func (l *Lexer) NextString() string {
+// returns lowercased string data in scanners current token
+func (l *Lexer) Text() string {
 	return strings.ToLower(l.scn.TokenText())
 }

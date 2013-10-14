@@ -1,62 +1,100 @@
 package dsql
 
-// import "io"
+import (
+	"errors"
+	"fmt"
 
-// var ErrUnexpectedToken = errors.New("lexer: unexpected token")
+	"strings"
+)
 
-// type QueryRequest struct {
-// 	TableName       string
-// 	AttributesToGet []string
-// }
+var ErrUnexpectedToken = errors.New("parser: unexpected token")
 
-// type Parser struct {
-// 	lexer *Lexer
-// 	tok   token
-// }
+func Parse(source string) (interface{}, error) {
+	parser := &Parser{
+		src: source,
+		lex: NewLexer(strings.NewReader(source)),
+	}
+	return parser.Parse()
+}
 
-// func NewParser(source io.Reader) *Parser {
-// 	return &Parser{lexer: NewLexer(source)}
-// }
+type Parser struct {
+	src string
+	lex *Lexer
+	err error
+}
 
-// func (p *Parser) Parse() (request interface{}, err error) {
-// 	// recover from panic
-// 	p.next()
-// 	for p.tok != TokEOF {
-// 		switch p.tok {
-// 		case TokSelect:
-// 			return p._select()
-// 		default:
-// 			return ErrUnexpectedToken
-// 		}
-// 	}
+func (p *Parser) Parse() (interface{}, error) {
+	var req interface{}
 
-// 	return nil
-// }
+	switch p.next() {
+	case Keyword:
+		switch p.text() {
+		case "select":
+			req = p.Select()
+		case "insert":
+			req = p.Insert()
+		}
+	}
+	return req, p.err
+}
 
-// // list
-// // assign
+func (p *Parser) Select() interface{} {
+	req := Query{}
 
-// func (p *Parser) _select() (req interface{}, err error) {
-// 	// req = &QueryRequest{}
+	switch p.next() {
+	case Wildcard:
+		req.Select = "ALL_ATTRIBUTES"
+	case Identifier:
+		var ids []string
+		var t Token
+		for t != Keyword {
+			t = p.peek()
+			if t == Identifier {
+				ids = append(ids, p.text())
+				p.next()
+			} else if t == Comma {
+				p.next()
+			} else {
+				p.errUnexpected()
+				return nil
+			}
+		}
+	default:
+		p.errUnexpected()
+		return nil
+	}
 
-// 	// p.match(TokId)
-// 	// p.match(TokFrom)
-// 	// p.match(TokId)
-// 	// p.match(TokWhere)
-// 	// p.match(TokId)
-// 	// p.match(TokOp)
-// 	// p.match(TokId)
+	if p.next() != Keyword && p.text() != "from" {
+		p.errUnexpected()
+		return nil
+	}
 
-// 	return req, nil
-// }
+	if p.next() != Identifier {
+		p.errUnexpected()
+		return nil
+	}
 
-// func (p *Parser) next() {
-// 	p.tok, err = p.lexer.Next()
-// }
+	req.TableName = p.text()
 
-// func (p *Parser) match(t token) {
-// 	p.next()
-// 	if p.tok != t {
-// 		panic("unexpected token", p.tok)
-// 	}
-// }
+	return req
+}
+
+func (p *Parser) Insert() interface{} {
+	return nil
+}
+
+func (p *Parser) next() Token {
+	return p.lex.Next()
+}
+
+func (p *Parser) peek() Token {
+	return p.lex.Peek()
+}
+
+func (p *Parser) text() string {
+	return p.lex.Text()
+}
+
+func (p *Parser) errUnexpected() {
+	p.err = fmt.Errorf("parser: unexpected token '%s' in '%s', expected %s", p.text(), p.src, Names[p.peek()])
+}
