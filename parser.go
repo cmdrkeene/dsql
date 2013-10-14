@@ -23,6 +23,8 @@ type Parser struct {
 	err error
 }
 
+// recover from unexpected eof
+// recover from unexpected token
 func (p *Parser) Parse() (interface{}, error) {
 	var req interface{}
 
@@ -47,7 +49,7 @@ func (p *Parser) Select() interface{} {
 
 	p.next()
 
-	if !p.match(Wildcard, Identifier) {
+	if !p.expect(Wildcard, Identifier) {
 		return nil
 	}
 
@@ -65,11 +67,7 @@ func (p *Parser) Select() interface{} {
 		req.AttributesToGet = ids
 	}
 
-	if !p.match(Keyword) {
-		return nil
-	}
-
-	if !p.matchText("from") {
+	if !p.matchKeyword("from") {
 		return nil
 	}
 
@@ -79,6 +77,43 @@ func (p *Parser) Select() interface{} {
 	}
 
 	req.TableName = p.text()
+
+	if p.next() == EOF {
+		return req
+	}
+
+	// conditions
+	// WHERE ((Ident Operator (Number|String)))(Comma)?)+ (EOF|Keyword)
+
+	if !p.matchKeyword("where") {
+		return nil
+	}
+
+	p.next()
+	for p.match(Identifier, Comma) {
+		if p.peek() == Identifier {
+			attr := p.text()
+			kc := KeyCondition{}
+
+			// operator
+			p.next()
+			if !p.expect(Operator) {
+				return nil
+			}
+
+			kc.ComparisonOperator = DynamoOperators[p.text()]
+
+			// value
+			p.next()
+			if !p.expect(Number, String) {
+				return nil
+			}
+			v := map[string]string{DynamoTypes[p.peek()]: p.text()}
+			kc.AttributeValueList = append(kc.AttributeValueList, v)
+			req.KeyConditions[attr] = kc
+		}
+		p.next()
+	}
 
 	return req
 }
@@ -105,12 +140,27 @@ func (p *Parser) match(tokens ...Token) bool {
 			return true
 		}
 	}
+	return false
+}
+
+func (p *Parser) expect(tokens ...Token) bool {
+	if p.match(tokens...) {
+		return true
+	}
 	p.errUnexpected()
 	return false
 }
 
 func (p *Parser) matchText(t string) bool {
 	if p.text() == t {
+		return true
+	}
+	p.errUnexpected()
+	return false
+}
+
+func (p *Parser) matchKeyword(s string) bool {
+	if p.peek() == Keyword && p.text() == s {
 		return true
 	}
 	p.errUnexpected()

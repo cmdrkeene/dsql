@@ -5,7 +5,7 @@ type Token rune
 const (
 	Keywords  = "select|insert|create|update|delete|from|where|and|set|limit|order|by|asc|desc|into|values|table"
 	Types     = "number|string|hash|range|key"
-	Operators = "=|!=|>|<"
+	Operators = "=|>|>=|<|<=|like"
 )
 
 const (
