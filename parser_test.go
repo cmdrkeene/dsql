@@ -38,28 +38,28 @@ func TestParseSelectAttributes(t *testing.T) {
 	}
 }
 
-// func TestParseSelectAttributesConditions(t *testing.T) {
-// 	source := "select id, name from messages where id = 1"
-// 	expected := Query{
-// 		TableName:       "messages",
-// 		AttributesToGet: []string{"id", "name"},
-// 		KeyConditions: map[string]KeyCondition{
-// 			"messages": KeyCondition{
-// 				ComparisonOperator: "EQ",
-// 				AttributeValueList: []map[string]string{
-// 					map[string]string{"N": "1"},
-// 				},
-// 			},
-// 		},
-// 	}
+func TestParseSelectAttributesConditions(t *testing.T) {
+	source := "select id, name from messages where id = 1"
+	expected := Query{
+		TableName:       "messages",
+		AttributesToGet: []string{"id", "name"},
+		KeyConditions: map[string]KeyCondition{
+			"id": KeyCondition{
+				ComparisonOperator: "EQ",
+				AttributeValueList: []map[string]string{
+					map[string]string{"N": "1"},
+				},
+			},
+		},
+	}
 
-// 	actual, err := Parse(source)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
+	actual, err := Parse(source)
+	if err != nil {
+		t.Error(err)
+	}
 
-// 	if !reflect.DeepEqual(actual, expected) {
-// 		t.Error("expected", expected)
-// 		t.Error("actual  ", actual)
-// 	}
-// }
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("expected", expected)
+		t.Error("actual  ", actual)
+	}
+}

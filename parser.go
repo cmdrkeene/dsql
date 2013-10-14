@@ -110,7 +110,7 @@ func (p *Parser) Select() interface{} {
 			}
 			v := map[string]string{DynamoTypes[p.peek()]: p.text()}
 			kc.AttributeValueList = append(kc.AttributeValueList, v)
-			req.KeyConditions[attr] = kc
+			req.KeyConditions = map[string]KeyCondition{attr: kc}
 		}
 		p.next()
 	}
