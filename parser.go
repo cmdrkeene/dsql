@@ -2,6 +2,8 @@ package dsql
 
 // import "io"
 
+// var ErrUnexpectedToken = errors.New("lexer: unexpected token")
+
 // type QueryRequest struct {
 // 	TableName       string
 // 	AttributesToGet []string

@@ -1,9 +1,6 @@
 package dsql
 
 import (
-	"errors"
-	"log"
-
 	"io"
 
 	"regexp"
@@ -14,19 +11,44 @@ import (
 type token rune
 
 const (
-	TokKeyword token = iota
-	TokId
-	TokWildcard
-	TokString
-	TokNumber
-	TokOp
-	TokComma
-	TokSemicolon
-	TokEOF
-	TokUnknown
+	Keyword token = iota
+	Identifier
+	Wildcard
+	String
+	Number
+	Operator
+	Comma
+	Semicolon
+	EOF
+	Unknown
 )
 
-var ErrUnexpectedToken = errors.New("lexer: unexpected token")
+// shorthand
+const (
+	K = Keyword
+	I = Identifier
+	W = Wildcard
+	N = Number
+	S = String
+	O = Operator
+	C = Comma
+	M = Semicolon
+	E = EOF
+	U = Unknown
+)
+
+var TokenNames = map[token]string{
+	Keyword:    "Keyword",
+	Identifier: "Identifier",
+	Wildcard:   "Wildcard",
+	String:     "String",
+	Number:     "Number",
+	Operator:   "Operator",
+	Comma:      "Comma",
+	Semicolon:  "Semicolon",
+	EOF:        "EOF",
+	Unknown:    "Unkown",
+}
 
 func NewLexer(source io.Reader) *Lexer {
 	l := &Lexer{}
@@ -41,36 +63,9 @@ type Lexer struct {
 
 func (l *Lexer) Names(tokens []token) (names []string) {
 	for _, t := range tokens {
-		names = append(names, l.Name(t))
+		names = append(names, TokenNames[t])
 	}
 	return names
-}
-
-func (l *Lexer) Name(t token) string {
-	var name string
-	switch t {
-	case TokKeyword:
-		name = "Keyword"
-	case TokId:
-		name = "Id"
-	case TokWildcard:
-		name = "Wildcard"
-	case TokString:
-		name = "String"
-	case TokNumber:
-		name = "Number"
-	case TokOp:
-		name = "Op"
-	case TokComma:
-		name = "Comma"
-	case TokSemicolon:
-		name = "Semicolon"
-	case TokEOF:
-		name = "EOF"
-	case TokUnknown:
-		name = "Unknown"
-	}
-	return name
 }
 
 func (l *Lexer) Tokens() (tokens []token) {
@@ -78,7 +73,7 @@ func (l *Lexer) Tokens() (tokens []token) {
 	for {
 		t = l.Next()
 		tokens = append(tokens, t)
-		if t == TokEOF {
+		if t == EOF {
 			break
 		}
 	}
@@ -89,26 +84,25 @@ func (l *Lexer) Next() (t token) {
 	switch l.scn.Scan() {
 	case scanner.Ident:
 		if l.isKeyword() {
-			t = TokKeyword
+			t = Keyword
 		} else {
-			t = TokId
+			t = Identifier
 		}
 	case scanner.Float, scanner.Int:
-		t = TokNumber
+		t = Number
 	case scanner.String:
-		t = TokString
+		t = String
 	case scanner.EOF:
-		t = TokEOF
+		t = EOF
 	default:
 		if l.isWildcard() {
-			t = TokWildcard
+			t = Wildcard
 		} else if l.isComma() {
-			t = TokComma
-		} else if l.isOp() {
-			t = TokOp
+			t = Comma
+		} else if l.isOperator() {
+			t = Operator
 		} else {
-			log.Print("unknown: ", l.NextString())
-			t = TokUnknown
+			t = Unknown
 		}
 	}
 	return t
@@ -134,16 +128,12 @@ func (l *Lexer) isComma() bool {
 	return l.NextString() == ","
 }
 
-func (l *Lexer) isOp() bool {
+func (l *Lexer) isOperator() bool {
 	matched, err := regexp.MatchString("=|!=|>|<", l.NextString())
 	if err != nil {
 		return false
 	}
 	return matched
-}
-
-func (l *Lexer) scanString(raw rune) token {
-	return TokEOF
 }
 
 func (l *Lexer) NextString() string {
