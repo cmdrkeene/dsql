@@ -38,39 +38,43 @@ func (p *Parser) Parse() (interface{}, error) {
 	return req, p.err
 }
 
+// get wildcard or identifier
+// if comma, add identifiers until next keyword
+// if keyword is not from, error
+// if next is not identifier, error
 func (p *Parser) Select() interface{} {
 	req := Query{}
 
-	switch p.next() {
-	case Wildcard:
-		req.Select = "ALL_ATTRIBUTES"
-	case Identifier:
-		var ids []string
-		var t Token
-		for t != Keyword {
-			t = p.peek()
-			if t == Identifier {
+	p.next()
+
+	if !p.match(Wildcard, Identifier) {
+		return nil
+	}
+
+	if p.peek() == Wildcard {
+		p.next()
+	}
+
+	if p.peek() == Identifier {
+		ids := []string{p.text()}
+		for p.peek() == Identifier || p.peek() == Comma {
+			if p.next() == Identifier {
 				ids = append(ids, p.text())
-				p.next()
-			} else if t == Comma {
-				p.next()
-			} else {
-				p.errUnexpected()
-				return nil
 			}
 		}
-	default:
-		p.errUnexpected()
+		req.AttributesToGet = ids
+	}
+
+	if !p.match(Keyword) {
 		return nil
 	}
 
-	if p.next() != Keyword && p.text() != "from" {
-		p.errUnexpected()
+	if !p.matchText("from") {
 		return nil
 	}
 
-	if p.next() != Identifier {
-		p.errUnexpected()
+	p.next()
+	if !p.match(Identifier) {
 		return nil
 	}
 
@@ -95,6 +99,24 @@ func (p *Parser) text() string {
 	return p.lex.Text()
 }
 
+func (p *Parser) match(tokens ...Token) bool {
+	for _, t := range tokens {
+		if p.peek() == t {
+			return true
+		}
+	}
+	p.errUnexpected()
+	return false
+}
+
+func (p *Parser) matchText(t string) bool {
+	if p.text() == t {
+		return true
+	}
+	p.errUnexpected()
+	return false
+}
+
 func (p *Parser) errUnexpected() {
-	p.err = fmt.Errorf("parser: unexpected token '%s' in '%s', expected %s", p.text(), p.src, Names[p.peek()])
+	p.err = fmt.Errorf("parser: unexpected token '%s' in '%s' expected %s", p.text(), p.src, Names[p.peek()])
 }
