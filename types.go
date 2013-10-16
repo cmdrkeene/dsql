@@ -1,13 +1,28 @@
 package dsql
 
-type AttributeValue struct {
+var DynamoOperators = map[string]string{
+	"=":       "EQ",
+	"<":       "LT",
+	"<=":      "LE",
+	">":       "GT",
+	">=":      "GE",
+	"like":    "BEGINS_WITH",
+	"between": "BETWEEN",
+}
+
+var DynamoTypes = map[Token]string{
+	Number: "N",
+	String: "S",
+}
+
+type Value struct {
 	Type  string
 	Value string
 }
 
 type KeyCondition struct {
 	ComparisonOperator string
-	AttributeValueList []AttributeValue
+	AttributeValueList []Value
 }
 
 type Query struct {
@@ -25,38 +40,28 @@ func (q *Query) AddCondition(exp Expression) {
 		q.KeyConditions = map[string]KeyCondition{}
 	}
 
-	var list []AttributeValue
-	value := AttributeValue{DynamoTypes[exp.ValueToken], exp.ValueText}
+	var values []Value
+	value := Value{DynamoTypes[exp.ValueToken], exp.ValueText}
 
 	if _, ok := q.KeyConditions[exp.Identifier]; ok {
-		list = q.KeyConditions[exp.Identifier].AttributeValueList
-		list = append(list, value)
+		values = q.KeyConditions[exp.Identifier].AttributeValueList
+		values = append(values, value)
 	} else {
-		list = []AttributeValue{value}
+		values = []Value{value}
 	}
 
 	if exp.ValueBetweenText != "" {
-		value = AttributeValue{DynamoTypes[exp.ValueToken], exp.ValueBetweenText}
-		list = append(list, value)
+		value = Value{DynamoTypes[exp.ValueToken], exp.ValueBetweenText}
+		values = append(values, value)
 	}
 
 	q.KeyConditions[exp.Identifier] = KeyCondition{
 		ComparisonOperator: DynamoOperators[exp.Operator],
-		AttributeValueList: list,
+		AttributeValueList: values,
 	}
 }
 
-var DynamoOperators = map[string]string{
-	"=":       "EQ",
-	"<":       "LT",
-	"<=":      "LE",
-	">":       "GT",
-	">=":      "GE",
-	"like":    "BEGINS_WITH",
-	"between": "BETWEEN",
-}
-
-var DynamoTypes = map[Token]string{
-	Number: "N",
-	String: "S",
+type PutItem struct {
+	TableName string
+	Item      map[string]Value
 }

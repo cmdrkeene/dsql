@@ -46,7 +46,7 @@ func TestParseSelectSingleCondition(t *testing.T) {
 		KeyConditions: map[string]KeyCondition{
 			"id": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []AttributeValue{AttributeValue{"N", "1"}},
+				AttributeValueList: []Value{Value{"N", "1"}},
 			},
 		},
 	}
@@ -70,11 +70,11 @@ func TestParseSelectMultipleConditions(t *testing.T) {
 		KeyConditions: map[string]KeyCondition{
 			"id": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []AttributeValue{AttributeValue{"N", "1"}},
+				AttributeValueList: []Value{Value{"N", "1"}},
 			},
 			"name": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []AttributeValue{AttributeValue{"S", "a"}},
+				AttributeValueList: []Value{Value{"S", "a"}},
 			},
 		},
 	}
@@ -98,13 +98,13 @@ func TestParseSelectMultipleConditionsOr(t *testing.T) {
 		KeyConditions: map[string]KeyCondition{
 			"id": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []AttributeValue{AttributeValue{"N", "1"}},
+				AttributeValueList: []Value{Value{"N", "1"}},
 			},
 			"name": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []AttributeValue{
-					AttributeValue{"S", "a"},
-					AttributeValue{"S", "b"},
+				AttributeValueList: []Value{
+					Value{"S", "a"},
+					Value{"S", "b"},
 				},
 			},
 		},
@@ -129,15 +129,36 @@ func TestParseSelectMultipleConditionsBetween(t *testing.T) {
 		KeyConditions: map[string]KeyCondition{
 			"id": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []AttributeValue{AttributeValue{"N", "1"}},
+				AttributeValueList: []Value{Value{"N", "1"}},
 			},
 			"name": KeyCondition{
 				ComparisonOperator: "BETWEEN",
-				AttributeValueList: []AttributeValue{
-					AttributeValue{"S", "a"},
-					AttributeValue{"S", "z"},
+				AttributeValueList: []Value{
+					Value{"S", "a"},
+					Value{"S", "z"},
 				},
 			},
+		},
+	}
+
+	actual, err := Parse(source)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("expected", expected)
+		t.Error("actual  ", actual)
+	}
+}
+
+func TestParseInsert(t *testing.T) {
+	source := `insert into messages (id, name) values (1, "a")`
+	expected := PutItem{
+		TableName: "messages",
+		Item: map[string]Value{
+			"id":   Value{"N", "1"},
+			"name": Value{"S", "a"},
 		},
 	}
 
