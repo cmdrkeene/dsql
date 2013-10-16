@@ -79,8 +79,8 @@ func (p *Parser) Select() interface{} {
 
 	query.AddCondition(p.expr())
 
-	for p.token() == Keyword && (p.text() == "and" || p.text() == "or") {
-		p.match(Keyword)
+	for p.token() == Operator {
+		p.match(Operator)
 		query.AddCondition(p.expr())
 	}
 
@@ -88,19 +88,30 @@ func (p *Parser) Select() interface{} {
 }
 
 type Expression struct {
-	Identifier string
-	Operator   string
-	ValueToken Token
-	ValueText  string
+	Identifier       string
+	Operator         string
+	ValueToken       Token
+	ValueText        string
+	ValueBetweenText string // for between
 }
 
-func (p *Parser) expr() Expression {
-	return Expression{
-		p.match(Identifier),
-		p.match(Operator),
-		p.token(),
-		p.trim(p.match(String, Number)),
+func (p *Parser) expr() (exp Expression) {
+	exp.Identifier = p.match(Identifier)
+
+	if p.text() == "between" {
+		exp.Operator = p.match(Operator)
+		p.match(LeftParen)
+		exp.ValueToken = p.token()
+		exp.ValueText = p.trim(p.match(String, Number))
+		p.match(Comma)
+		exp.ValueBetweenText = p.trim(p.match(String, Number))
+		p.match(RightParen)
+	} else {
+		exp.Operator = p.match(Operator)
+		exp.ValueToken = p.token()
+		exp.ValueText = p.trim(p.match(String, Number))
 	}
+	return exp
 }
 
 func (p *Parser) Insert() interface{} {

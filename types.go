@@ -35,6 +35,11 @@ func (q *Query) AddCondition(exp Expression) {
 		list = []AttributeValue{value}
 	}
 
+	if exp.ValueBetweenText != "" {
+		value = AttributeValue{DynamoTypes[exp.ValueToken], exp.ValueBetweenText}
+		list = append(list, value)
+	}
+
 	q.KeyConditions[exp.Identifier] = KeyCondition{
 		ComparisonOperator: DynamoOperators[exp.Operator],
 		AttributeValueList: list,
@@ -42,12 +47,13 @@ func (q *Query) AddCondition(exp Expression) {
 }
 
 var DynamoOperators = map[string]string{
-	"=":    "EQ",
-	"<":    "LT",
-	"<=":   "LE",
-	">":    "GT",
-	">=":   "GE",
-	"like": "BEGINS_WITH",
+	"=":       "EQ",
+	"<":       "LT",
+	"<=":      "LE",
+	">":       "GT",
+	">=":      "GE",
+	"like":    "BEGINS_WITH",
+	"between": "BETWEEN",
 }
 
 var DynamoTypes = map[Token]string{

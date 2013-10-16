@@ -54,6 +54,8 @@ func (l *Lexer) tokenize(r rune) (t Token) {
 			t = Keyword
 		} else if l.isType() {
 			t = Type
+		} else if l.isOperator() {
+			t = Operator
 		} else {
 			t = Identifier
 		}

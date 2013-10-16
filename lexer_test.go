@@ -31,11 +31,11 @@ func TestLexerCases(t *testing.T) {
 		},
 		Case{
 			`SELECT id, name FROM users WHERE id = "1" AND name > 2`,
-			[]Token{K, I, C, I, K, I, K, I, O, S, K, I, O, N, E},
+			[]Token{K, I, C, I, K, I, K, I, O, S, O, I, O, N, E},
 		},
 		Case{
-			`SELECT id, name FROM users WHERE id = 1 AND name > "A"`,
-			[]Token{K, I, C, I, K, I, K, I, O, N, K, I, O, S, E},
+			`SELECT id, name FROM users WHERE id = 1 AND name BETWEEN("a", "z")`,
+			[]Token{K, I, C, I, K, I, K, I, O, N, O, I, O, L, S, C, S, R, E},
 		},
 		Case{
 			`INSERT INTO users (id, name) VALUES (1, "A")`,
