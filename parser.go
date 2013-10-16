@@ -3,6 +3,7 @@ package dsql
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"strings"
 )
@@ -26,9 +27,15 @@ type Parser struct {
 // recover from unexpected eof
 // recover from unexpected token
 func (p *Parser) Parse() (interface{}, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
+
 	var req interface{}
 
-	switch p.next() {
+	switch p.token() {
 	case Keyword:
 		switch p.text() {
 		case "select":
@@ -40,93 +47,71 @@ func (p *Parser) Parse() (interface{}, error) {
 	return req, p.err
 }
 
-// get wildcard or identifier
-// if comma, add identifiers until next keyword
-// if keyword is not from, error
-// if next is not identifier, error
 func (p *Parser) Select() interface{} {
-	req := Query{}
+	query := Query{}
 
-	p.next()
+	p.matchS(Keyword, "select")
 
-	if !p.expect(Wildcard, Identifier) {
-		return nil
-	}
+	if p.token() == Wildcard {
+		p.consume()
+	} else {
+		query.AddColumn(p.match(Identifier))
 
-	if p.peek() == Wildcard {
-		p.next()
-	}
-
-	if p.peek() == Identifier {
-		ids := []string{p.text()}
-		for p.peek() == Identifier || p.peek() == Comma {
-			if p.next() == Identifier {
-				ids = append(ids, p.text())
-			}
+		for p.token() == Comma {
+			p.match(Comma)
+			id := p.text()
+			p.match(Identifier)
+			query.AddColumn(id)
 		}
-		req.AttributesToGet = ids
 	}
 
-	if !p.matchKeyword("from") {
-		return nil
+	p.matchS(Keyword, "from")
+
+	query.TableName = p.match(Identifier)
+
+	if p.token() == EOF {
+		return query
 	}
 
-	p.next()
-	if !p.match(Identifier) {
-		return nil
+	// WHERE (Ident Operator (Number|String))+ (EOF|Keyword)
+
+	p.matchS(Keyword, "where")
+
+	query.AddCondition(p.expr())
+
+	for p.token() == Keyword && p.text() == "and" {
+		p.matchS(Keyword, "and")
+		query.AddCondition(p.expr())
 	}
 
-	req.TableName = p.text()
+	return query
+}
 
-	if p.next() == EOF {
-		return req
+type Expression struct {
+	Identifier string
+	Operator   string
+	ValueToken Token
+	ValueText  string
+}
+
+func (p *Parser) expr() Expression {
+	return Expression{
+		p.match(Identifier),
+		p.match(Operator),
+		p.token(),
+		p.match(String, Number),
 	}
-
-	// conditions
-	// WHERE ((Ident Operator (Number|String)))(Comma)?)+ (EOF|Keyword)
-
-	if !p.matchKeyword("where") {
-		return nil
-	}
-
-	p.next()
-	for p.match(Identifier, Comma) {
-		if p.peek() == Identifier {
-			attr := p.text()
-			kc := KeyCondition{}
-
-			// operator
-			p.next()
-			if !p.expect(Operator) {
-				return nil
-			}
-
-			kc.ComparisonOperator = DynamoOperators[p.text()]
-
-			// value
-			p.next()
-			if !p.expect(Number, String) {
-				return nil
-			}
-			v := map[string]string{DynamoTypes[p.peek()]: p.text()}
-			kc.AttributeValueList = append(kc.AttributeValueList, v)
-			req.KeyConditions = map[string]KeyCondition{attr: kc}
-		}
-		p.next()
-	}
-
-	return req
 }
 
 func (p *Parser) Insert() interface{} {
 	return nil
 }
 
-func (p *Parser) next() Token {
+func (p *Parser) consume() Token {
 	return p.lex.Next()
 }
 
-func (p *Parser) peek() Token {
+func (p *Parser) token() Token {
 	return p.lex.Peek()
 }
 
@@ -134,39 +119,38 @@ func (p *Parser) text() string {
 	return p.lex.Text()
 }
 
-func (p *Parser) match(tokens ...Token) bool {
+func (p *Parser) match(tokens ...Token) (s string) {
 	for _, t := range tokens {
-		if p.peek() == t {
-			return true
+		if p.token() == t {
+			s = p.text()
+			p.consume()
+			return s
 		}
 	}
-	return false
+	p.panic()
+	return s
 }
 
-func (p *Parser) expect(tokens ...Token) bool {
-	if p.match(tokens...) {
-		return true
+func (p *Parser) matchS(t Token, s string) string {
+	if p.token() == t && p.text() == s {
+		p.consume()
+	} else {
+		p.panic()
 	}
-	p.errUnexpected()
-	return false
+
+	return s
 }
 
-func (p *Parser) matchText(t string) bool {
-	if p.text() == t {
-		return true
-	}
-	p.errUnexpected()
-	return false
+func (p *Parser) panic() {
+	err := fmt.Errorf(
+		"parser: unexpected token '%s' in '%s' expected %s",
+		p.text(),
+		p.src,
+		Names[p.token()],
+	)
+	panic(err)
 }
 
-func (p *Parser) matchKeyword(s string) bool {
-	if p.peek() == Keyword && p.text() == s {
-		return true
-	}
-	p.errUnexpected()
-	return false
-}
-
-func (p *Parser) errUnexpected() {
-	p.err = fmt.Errorf("parser: unexpected token '%s' in '%s' expected %s", p.text(), p.src, Names[p.peek()])
+func (p *Parser) print() {
+	log.Printf("current token: %s (%s)", Names[p.token()], p.text())
 }
