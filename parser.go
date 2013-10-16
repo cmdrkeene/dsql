@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-
 	"strings"
 )
 
@@ -24,8 +23,6 @@ type Parser struct {
 	err error
 }
 
-// recover from unexpected eof
-// recover from unexpected token
 func (p *Parser) Parse() (interface{}, error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -73,8 +70,6 @@ func (p *Parser) Select() interface{} {
 		return query
 	}
 
-	// WHERE (Ident Operator (Number|String))+ (EOF|Keyword)
-
 	p.matchS(Keyword, "where")
 
 	query.AddCondition(p.expr())
@@ -92,7 +87,7 @@ type Expression struct {
 	Operator         string
 	ValueToken       Token
 	ValueText        string
-	ValueBetweenText string // for between
+	ValueBetweenText string
 }
 
 func (p *Parser) expr() (exp Expression) {
