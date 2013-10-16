@@ -99,7 +99,7 @@ func (p *Parser) expr() Expression {
 		p.match(Identifier),
 		p.match(Operator),
 		p.token(),
-		p.match(String, Number),
+		p.trim(p.match(String, Number)),
 	}
 }
 
@@ -153,4 +153,8 @@ func (p *Parser) panic() {
 
 func (p *Parser) print() {
 	log.Printf("current token: %s (%s)", Names[p.token()], p.text())
+}
+
+func (p *Parser) trim(s string) string {
+	return strings.Trim(s, `"`)
 }

@@ -64,34 +64,34 @@ func TestParseSelectSingleCondition(t *testing.T) {
 	}
 }
 
-// func TestParseSelectMultipleConditions(t *testing.T) {
-// 	source := `select id, name from messages where id = 1 AND name = "a"`
-// 	expected := Query{
-// 		TableName:       "messages",
-// 		AttributesToGet: []string{"id", "name"},
-// 		KeyConditions: map[string]KeyCondition{
-// 			"id": KeyCondition{
-// 				ComparisonOperator: "EQ",
-// 				AttributeValueList: []map[string]string{
-// 					map[string]string{"N": "1"},
-// 				},
-// 			},
-// 			"name": KeyCondition{
-// 				ComparisonOperator: "EQ",
-// 				AttributeValueList: []map[string]string{
-// 					map[string]string{"S": "a"},
-// 				},
-// 			},
-// 		},
-// 	}
+func TestParseSelectMultipleConditions(t *testing.T) {
+	source := `select id, name from messages where id = 1 AND name = "a"`
+	expected := Query{
+		TableName:       "messages",
+		AttributesToGet: []string{"id", "name"},
+		KeyConditions: map[string]KeyCondition{
+			"id": KeyCondition{
+				ComparisonOperator: "EQ",
+				AttributeValueList: []map[string]string{
+					map[string]string{"N": "1"},
+				},
+			},
+			"name": KeyCondition{
+				ComparisonOperator: "EQ",
+				AttributeValueList: []map[string]string{
+					map[string]string{"S": "a"},
+				},
+			},
+		},
+	}
 
-// 	actual, err := Parse(source)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
+	actual, err := Parse(source)
+	if err != nil {
+		t.Error(err)
+	}
 
-// 	if !reflect.DeepEqual(actual, expected) {
-// 		t.Error("expected", expected)
-// 		t.Error("actual  ", actual)
-// 	}
-// }
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("expected", expected)
+		t.Error("actual  ", actual)
+	}
+}

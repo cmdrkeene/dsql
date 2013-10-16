@@ -16,16 +16,20 @@ func (q *Query) AddColumn(col string) {
 }
 
 func (q *Query) AddCondition(exp Expression) {
-	q.KeyConditions = map[string]KeyCondition{
-		exp.Identifier: KeyCondition{
-			ComparisonOperator: DynamoOperators[exp.Operator],
-			AttributeValueList: []map[string]string{
-				map[string]string{
-					DynamoTypes[exp.ValueToken]: exp.ValueText,
-				},
+	if q.KeyConditions == nil {
+		q.KeyConditions = map[string]KeyCondition{}
+	}
+
+	kc := KeyCondition{
+		ComparisonOperator: DynamoOperators[exp.Operator],
+		AttributeValueList: []map[string]string{
+			map[string]string{
+				DynamoTypes[exp.ValueToken]: exp.ValueText,
 			},
 		},
 	}
+
+	q.KeyConditions[exp.Identifier] = kc
 }
 
 var DynamoOperators = map[string]string{
