@@ -79,8 +79,8 @@ func (p *Parser) Select() interface{} {
 
 	query.AddCondition(p.expr())
 
-	for p.token() == Keyword && p.text() == "and" {
-		p.matchS(Keyword, "and")
+	for p.token() == Keyword && (p.text() == "and" || p.text() == "or") {
+		p.match(Keyword)
 		query.AddCondition(p.expr())
 	}
 

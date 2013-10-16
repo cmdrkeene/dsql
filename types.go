@@ -1,8 +1,13 @@
 package dsql
 
+type AttributeValue struct {
+	Type  string
+	Value string
+}
+
 type KeyCondition struct {
 	ComparisonOperator string
-	AttributeValueList []map[string]string
+	AttributeValueList []AttributeValue
 }
 
 type Query struct {
@@ -20,16 +25,20 @@ func (q *Query) AddCondition(exp Expression) {
 		q.KeyConditions = map[string]KeyCondition{}
 	}
 
-	kc := KeyCondition{
-		ComparisonOperator: DynamoOperators[exp.Operator],
-		AttributeValueList: []map[string]string{
-			map[string]string{
-				DynamoTypes[exp.ValueToken]: exp.ValueText,
-			},
-		},
+	var list []AttributeValue
+	value := AttributeValue{DynamoTypes[exp.ValueToken], exp.ValueText}
+
+	if _, ok := q.KeyConditions[exp.Identifier]; ok {
+		list = q.KeyConditions[exp.Identifier].AttributeValueList
+		list = append(list, value)
+	} else {
+		list = []AttributeValue{value}
 	}
 
-	q.KeyConditions[exp.Identifier] = kc
+	q.KeyConditions[exp.Identifier] = KeyCondition{
+		ComparisonOperator: DynamoOperators[exp.Operator],
+		AttributeValueList: list,
+	}
 }
 
 var DynamoOperators = map[string]string{
