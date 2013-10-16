@@ -26,7 +26,7 @@ type Parser struct {
 func (p *Parser) Parse() (interface{}, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Recovered in f", r)
+			fmt.Println(r)
 		}
 	}()
 
@@ -47,7 +47,7 @@ func (p *Parser) Parse() (interface{}, error) {
 func (p *Parser) Select() interface{} {
 	query := Query{}
 
-	p.matchS(Keyword, "select")
+	p.match(Keyword)
 
 	if p.token() == Wildcard {
 		p.consume()
@@ -97,20 +97,58 @@ func (p *Parser) expr() (exp Expression) {
 		exp.Operator = p.match(Operator)
 		p.match(LeftParen)
 		exp.ValueToken = p.token()
-		exp.ValueText = p.trim(p.match(String, Number))
+		exp.ValueText = trim(p.match(String, Number))
 		p.match(Comma)
-		exp.ValueBetweenText = p.trim(p.match(String, Number))
+		exp.ValueBetweenText = trim(p.match(String, Number))
 		p.match(RightParen)
 	} else {
 		exp.Operator = p.match(Operator)
 		exp.ValueToken = p.token()
-		exp.ValueText = p.trim(p.match(String, Number))
+		exp.ValueText = trim(p.match(String, Number))
 	}
 	return exp
 }
 
+// insert into name (id, name) values (1, "a")
 func (p *Parser) Insert() interface{} {
-	return nil
+	p.matchS(Keyword, "insert")
+	p.matchS(Keyword, "into")
+
+	table := p.match(Identifier)
+
+	p.match(LeftParen)
+	columns := []string{p.match(Identifier)}
+	for p.token() == Comma {
+		p.match(Comma)
+		col := p.text()
+		p.match(Identifier)
+		columns = append(columns, col)
+	}
+	p.match(RightParen)
+
+	p.matchS(Keyword, "values")
+	p.match(LeftParen)
+	values := []Value{NewValue(p.token(), p.text())}
+	p.match(String, Number)
+	for p.token() == Comma {
+		p.match(Comma)
+		value := NewValue(p.token(), p.text())
+		p.match(String, Number)
+		values = append(values, value)
+	}
+	p.match(RightParen)
+
+	item := map[string]Value{}
+
+	for i, col := range columns {
+		item[col] = values[i]
+	}
+
+	putItem := PutItem{
+		TableName: table,
+		Item:      item,
+	}
+	return putItem
 }
 
 func (p *Parser) consume() Token {
@@ -159,8 +197,4 @@ func (p *Parser) panic() {
 
 func (p *Parser) print() {
 	log.Printf("current token: %s (%s)", Names[p.token()], p.text())
-}
-
-func (p *Parser) trim(s string) string {
-	return strings.Trim(s, `"`)
 }

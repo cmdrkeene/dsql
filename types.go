@@ -1,5 +1,7 @@
 package dsql
 
+import "strings"
+
 var DynamoOperators = map[string]string{
 	"=":       "EQ",
 	"<":       "LT",
@@ -13,6 +15,10 @@ var DynamoOperators = map[string]string{
 var DynamoTypes = map[Token]string{
 	Number: "N",
 	String: "S",
+}
+
+func NewValue(t Token, s string) Value {
+	return Value{DynamoTypes[t], trim(s)}
 }
 
 type Value struct {
@@ -64,4 +70,8 @@ func (q *Query) AddCondition(exp Expression) {
 type PutItem struct {
 	TableName string
 	Item      map[string]Value
+}
+
+func trim(s string) string {
+	return strings.Trim(s, `"`)
 }
