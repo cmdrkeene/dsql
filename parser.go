@@ -39,6 +39,8 @@ func (p *Parser) Parse() (interface{}, error) {
 			req = p.Select()
 		case "insert":
 			req = p.Insert()
+		case "update":
+			req = p.Update()
 		}
 	}
 	return req, p.err
@@ -110,6 +112,7 @@ func (p *Parser) expr() (exp Expression) {
 }
 
 // insert into name (id, name) values (1, "a")
+// TODO insert into name (id, name) values (1, "a", 2, "b")
 func (p *Parser) Insert() interface{} {
 	p.matchS(Keyword, "insert")
 	p.matchS(Keyword, "into")
@@ -149,6 +152,32 @@ func (p *Parser) Insert() interface{} {
 		Item:      item,
 	}
 	return putItem
+}
+
+// update messages set name = "b" where id = 1
+func (p *Parser) Update() interface{} {
+	update := UpdateItem{}
+
+	p.matchS(Keyword, "update")
+	update.TableName = p.match(Identifier)
+
+	p.matchS(Keyword, "set")
+
+	update.AddUpdate(p.expr())
+	for p.token() == Comma {
+		p.match(Comma)
+		update.AddUpdate(p.expr())
+	}
+
+	p.matchS(Keyword, "where")
+
+	update.AddKey(p.expr())
+	for p.token() == Operator {
+		p.match(Operator)
+		update.AddKey(p.expr())
+	}
+
+	return update
 }
 
 func (p *Parser) consume() Token {
