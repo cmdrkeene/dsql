@@ -59,7 +59,7 @@ func TestLexerCases(t *testing.T) {
 				INDEX created WITH (HASH=group, RANGE=created, PROJECTION=(id, created)),
 				INDEX updated WITH (HASH=group, RANGE=updated, PROJECTION=ALL)
 			)
-			WITH READ_UNITS=10, WRITE_UNITS=10;`,
+			WITH (READ=10, WRITE=10);`,
 			[]Token{
 				K, K, I, L,
 				I, T, X, C,
@@ -69,7 +69,7 @@ func TestLexerCases(t *testing.T) {
 				X, I, K, L, X, O, I, C, X, O, I, C, X, O, L, I, C, I, R, R, C,
 				X, I, K, L, X, O, I, C, X, O, I, C, X, O, X, R,
 				R,
-				K, X, O, N, C, X, O, N, M, E},
+				K, L, I, O, N, C, I, O, N, R, M, E},
 		},
 	}
 

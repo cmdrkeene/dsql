@@ -168,6 +168,21 @@ func (p *Parser) Create() interface{} {
 		create.AddDefinition(p.definition())
 	}
 
+	p.match(RightParen)
+
+	if p.token() == Keyword {
+		p.matchS(Keyword, "with")
+		p.match(LeftParen)
+		create.AddThroughput(p.expr())
+		for p.token() == Comma {
+			p.match(Comma)
+			create.AddThroughput(p.expr())
+		}
+		p.match(RightParen)
+	}
+
+	p.match(Semicolon)
+
 	return create
 }
 

@@ -1,4 +1,6 @@
 // TODO terminate on semicolon
+// TODO Delete
+// TODO Insert multiple
 package dsql
 
 import (
@@ -175,7 +177,7 @@ func TestParseInsert(t *testing.T) {
 }
 
 func TestParseCreate(t *testing.T) {
-	source := `create table messages (group string hash, id number range)`
+	source := `create table messages (group string hash, id number range);`
 	expected := CreateTable{
 		TableName: "messages",
 		AttributeDefinitions: []AttributeDefinition{
@@ -199,6 +201,45 @@ func TestParseCreate(t *testing.T) {
 			},
 		},
 	}
+
+	actual, err := Parse(source)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("expected", expected)
+		t.Error("actual  ", actual)
+	}
+}
+
+func TestParseCreateThroughput(t *testing.T) {
+	source := `create table messages (group string hash, id number range) with (read = 10, write = 5);`
+	expected := CreateTable{
+		TableName: "messages",
+		AttributeDefinitions: []AttributeDefinition{
+			AttributeDefinition{
+				AttributeName: "group",
+				AttributeType: "S",
+			},
+			AttributeDefinition{
+				AttributeName: "id",
+				AttributeType: "N",
+			},
+		},
+		KeySchema: []Schema{
+			Schema{
+				AttributeName: "group",
+				KeyType:       "HASH",
+			},
+			Schema{
+				AttributeName: "id",
+				KeyType:       "RANGE",
+			},
+		},
+	}
+	expected.ProvisionedThroughput.ReadCapacityUnits = 10
+	expected.ProvisionedThroughput.WriteCapacityUnits = 5
 
 	actual, err := Parse(source)
 	if err != nil {

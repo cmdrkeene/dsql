@@ -1,6 +1,9 @@
 package dsql
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 var DynamoOperators = map[string]string{
 	"=":       "EQ",
@@ -112,9 +115,13 @@ type Update struct {
 }
 
 type CreateTable struct {
-	TableName            string
-	AttributeDefinitions []AttributeDefinition
-	KeySchema            []Schema
+	TableName             string
+	AttributeDefinitions  []AttributeDefinition
+	KeySchema             []Schema
+	ProvisionedThroughput struct {
+		ReadCapacityUnits  int
+		WriteCapacityUnits int
+	}
 }
 
 func (c *CreateTable) AddDefinition(d Definition) {
@@ -128,6 +135,22 @@ func (c *CreateTable) AddDefinition(d Definition) {
 			c.KeySchema,
 			Schema{d.Identifier, strings.ToUpper(d.Constraint)},
 		)
+	}
+}
+
+func (c *CreateTable) AddThroughput(exp Expression) {
+	units, err := strconv.Atoi(exp.ValueText)
+	if err != nil {
+		panic("throughput must be an integer")
+	}
+
+	switch exp.Identifier {
+	case "read":
+		c.ProvisionedThroughput.ReadCapacityUnits = units
+	case "write":
+		c.ProvisionedThroughput.WriteCapacityUnits = units
+	default:
+		panic("unknown create table parameter (expected read or write)")
 	}
 }
 
