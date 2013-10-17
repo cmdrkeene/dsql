@@ -1,7 +1,5 @@
-// TODO delete
 // TODO insert multiple
 // TODO create with index
-// TODO delete table
 package dsql
 
 import (
@@ -256,6 +254,27 @@ func TestParseCreateThroughput(t *testing.T) {
 func TestDropTable(t *testing.T) {
 	source := `drop table messages;`
 	expected := DeleteTable{TableName: "messages"}
+
+	actual, err := Parse(source)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("expected", expected)
+		t.Error("actual  ", actual)
+	}
+}
+
+func TestDeleteItem(t *testing.T) {
+	source := `delete from messages where id = 1 AND name = "a";`
+	expected := DeleteItem{
+		TableName: "messages",
+		Key: map[string]Value{
+			"id":   Value{"N", "1"},
+			"name": Value{"S", "a"},
+		},
+	}
 
 	actual, err := Parse(source)
 	if err != nil {

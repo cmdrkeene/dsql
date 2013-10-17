@@ -192,7 +192,16 @@ func (p *Parser) Create() interface{} {
 
 func (p *Parser) Delete() interface{} {
 	p.matchS(Keyword, "delete")
-	return DeleteItem{}
+	p.matchS(Keyword, "from")
+	deleteItem := DeleteItem{TableName: p.match(Identifier)}
+	p.matchS(Keyword, "where")
+	deleteItem.AddKey(p.expr())
+	for p.token() == Operator {
+		p.matchS(Operator, "and")
+		deleteItem.AddKey(p.expr())
+	}
+	p.match(Semicolon)
+	return deleteItem
 }
 
 func (p *Parser) Drop() interface{} {

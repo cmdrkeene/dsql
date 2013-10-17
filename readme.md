@@ -1,25 +1,19 @@
-# sql-to-dynamo
+# DSQL - Dynamo Structured Query Language
 
- ¯\_(ツ)_/¯
+ SQL dialect for interacting with DynamoDB.
 
-## Mapping
+ Writing Dynamo queries is cumbersome, SQL is easy.
 
-BatchGetItem    SELECT
-BatchWriteItem  INSERT
-CreateTable     CREATE
-DeleteItem      DELETE
-DeleteTable     DROP
-DescribeTable   DESCRIBE
-GetItem         SELECT
-ListTables      SHOW TABLES
-PutItem         INSERT
-Query           SELECT
-Scan            -- see below
-UpdateItem      UPDATE
-UpdateTable     ALTER
+## TODO
 
-## Scan
+* database/sql interface
+* test against fake dynamo
+* test against actual dynamo
 
-Map Scan operations onto DECLARE/OPEN/FETCH/CLOSE in some kind of cursor model.
-Since scans require special care and offer a simpler interface than the cursor
-model, this is not worth it. This is mainly for completeness.
+## NICE TO HAVE
+
+* `Expected` conditions (how does this map to SQL?)
+* `BatchWriteItem` is smarter than 25 item cap (batch in driver)
+* `Scan` operations (maybe a cursor?)
+* `RETURNING` keyword for `ReturnValues`
+
