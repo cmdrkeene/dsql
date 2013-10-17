@@ -91,7 +91,6 @@ func (p *Parser) Select() interface{} {
 	return query
 }
 
-// TODO insert into name (id, name) values (1, "a", 2, "b")
 func (p *Parser) Insert() interface{} {
 	p.matchS(Keyword, "insert")
 	p.matchS(Keyword, "into")

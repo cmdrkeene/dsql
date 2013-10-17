@@ -9,6 +9,8 @@
 * database/sql interface
 * test against fake dynamo
 * test against actual dynamo
+* insert multiple items
+* create table with local secondary index
 
 ## NICE TO HAVE
 

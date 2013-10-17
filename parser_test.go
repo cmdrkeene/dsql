@@ -1,5 +1,3 @@
-// TODO insert multiple
-// TODO create with index
 package dsql
 
 import (
