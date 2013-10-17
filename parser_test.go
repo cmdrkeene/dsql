@@ -1,6 +1,6 @@
-// TODO terminate on semicolon
-// TODO Delete
-// TODO Insert multiple
+// TODO delete
+// TODO insert multiple
+// TODO create with index
 package dsql
 
 import (
@@ -9,7 +9,7 @@ import (
 )
 
 func TestParseSelectWildcard(t *testing.T) {
-	source := "select * from messages"
+	source := "select * from messages;"
 	expected := Query{TableName: "messages"}
 
 	actual, err := Parse(source)
@@ -24,7 +24,7 @@ func TestParseSelectWildcard(t *testing.T) {
 }
 
 func TestParseSelectColumns(t *testing.T) {
-	source := "select id, name from messages"
+	source := "select id, name from messages;"
 	expected := Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
@@ -42,7 +42,7 @@ func TestParseSelectColumns(t *testing.T) {
 }
 
 func TestParseSelectSingleCondition(t *testing.T) {
-	source := "select id, name from messages where id = 1"
+	source := "select id, name from messages where id = 1;"
 	expected := Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
@@ -66,7 +66,7 @@ func TestParseSelectSingleCondition(t *testing.T) {
 }
 
 func TestParseSelectMultipleConditions(t *testing.T) {
-	source := `select id, name from messages where id = 1 AND name = "a"`
+	source := `select id, name from messages where id = 1 AND name = "a";`
 	expected := Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
@@ -94,7 +94,7 @@ func TestParseSelectMultipleConditions(t *testing.T) {
 }
 
 func TestParseSelectMultipleConditionsOr(t *testing.T) {
-	source := `select id, name from messages where id = 1 AND name = "a" OR name = "b"`
+	source := `select id, name from messages where id = 1 AND name = "a" OR name = "b";`
 	expected := Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
@@ -125,7 +125,7 @@ func TestParseSelectMultipleConditionsOr(t *testing.T) {
 }
 
 func TestParseSelectMultipleConditionsBetween(t *testing.T) {
-	source := `select id, name from messages where id = 1 AND name BETWEEN("a", "z")`
+	source := `select id, name from messages where id = 1 AND name BETWEEN("a", "z");`
 	expected := Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
@@ -156,7 +156,7 @@ func TestParseSelectMultipleConditionsBetween(t *testing.T) {
 }
 
 func TestParseInsert(t *testing.T) {
-	source := `insert into messages (id, name) values (1, "a")`
+	source := `insert into messages (id, name) values (1, "a");`
 	expected := PutItem{
 		TableName: "messages",
 		Item: map[string]Value{

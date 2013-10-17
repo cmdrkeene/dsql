@@ -70,7 +70,7 @@ func (p *Parser) Select() interface{} {
 
 	query.TableName = p.match(Identifier)
 
-	if p.token() == EOF {
+	if p.token() == Semicolon {
 		return query
 	}
 
@@ -83,6 +83,7 @@ func (p *Parser) Select() interface{} {
 		query.AddCondition(p.expr())
 	}
 
+	p.match(Semicolon)
 	return query
 }
 
@@ -121,11 +122,9 @@ func (p *Parser) Insert() interface{} {
 		item[col] = values[i]
 	}
 
-	putItem := PutItem{
-		TableName: table,
-		Item:      item,
-	}
-	return putItem
+	p.match(Semicolon)
+
+	return PutItem{TableName: table, Item: item}
 }
 
 func (p *Parser) Update() interface{} {
@@ -149,6 +148,8 @@ func (p *Parser) Update() interface{} {
 		p.match(Operator)
 		update.AddKey(p.expr())
 	}
+
+	p.match(Semicolon)
 
 	return update
 }
