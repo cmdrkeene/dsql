@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var DynamoOperators = map[string]string{
+var QueryOperators = map[string]string{
 	"=":       "EQ",
 	"<":       "LT",
 	"<=":      "LE",
@@ -15,7 +15,7 @@ var DynamoOperators = map[string]string{
 	"between": "BETWEEN",
 }
 
-var DynamoTypes = map[Token]string{
+var TokenTypes = map[Token]string{
 	Number: "N",
 	String: "S",
 }
@@ -30,7 +30,7 @@ var DefinitionTypes = map[string]string{
 }
 
 func NewValue(t Token, s string) Value {
-	return Value{DynamoTypes[t], trim(s)}
+	return Value{TokenTypes[t], trim(s)}
 }
 
 type Value struct {
@@ -59,7 +59,7 @@ func (q *Query) AddCondition(exp Expression) {
 	}
 
 	var values []Value
-	value := Value{DynamoTypes[exp.ValueToken], exp.ValueText}
+	value := Value{TokenTypes[exp.ValueToken], exp.ValueText}
 
 	if _, ok := q.KeyConditions[exp.Identifier]; ok {
 		values = q.KeyConditions[exp.Identifier].AttributeValueList
@@ -69,12 +69,12 @@ func (q *Query) AddCondition(exp Expression) {
 	}
 
 	if exp.ValueBetweenText != "" {
-		value = Value{DynamoTypes[exp.ValueToken], exp.ValueBetweenText}
+		value = Value{TokenTypes[exp.ValueToken], exp.ValueBetweenText}
 		values = append(values, value)
 	}
 
 	q.KeyConditions[exp.Identifier] = KeyCondition{
-		ComparisonOperator: DynamoOperators[exp.Operator],
+		ComparisonOperator: QueryOperators[exp.Operator],
 		AttributeValueList: values,
 	}
 }
