@@ -99,3 +99,19 @@ type Update struct {
 	Value  Value
 	Action string // PUT, ADD, DELETE
 }
+
+type CreateTable struct {
+	TableName            string
+	AttributeDefinitions []Definition
+	KeySchema            []Schema
+}
+
+type Definition struct {
+	AttributeName string
+	AttributeType string
+}
+
+type Schema struct {
+	AttributeName string
+	KeyType       string
+}

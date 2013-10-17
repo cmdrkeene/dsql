@@ -52,12 +52,24 @@ func TestLexerCases(t *testing.T) {
 		Case{
 			`
 			CREATE TABLE messages (
-			    GroupId STRING HASH KEY,
-			    MessageId NUMBER RANGE KEY,
-			    UserId NUMBER,
-			    Text STRING
-			);`,
-			[]Token{K, K, I, L, I, T, T, T, C, I, T, T, T, C, I, T, C, I, T, R, M, E},
+				group string HASH,
+				id number RANGE,
+				created string,
+				updated string,
+				INDEX created WITH (HASH=group, RANGE=created, PROJECTION=(id, created)),
+				INDEX updated WITH (HASH=group, RANGE=updated, PROJECTION=ALL)
+			)
+			WITH READ_UNITS=10, WRITE_UNITS=10;`,
+			[]Token{
+				K, K, I, L,
+				I, T, X, C,
+				I, T, X, C,
+				I, T, C,
+				I, T, C,
+				X, I, K, L, X, O, I, C, X, O, I, C, X, O, L, I, C, I, R, R, C,
+				X, I, K, L, X, O, I, C, X, O, I, C, X, O, X, R,
+				R,
+				K, X, O, N, C, X, O, N, M, E},
 		},
 	}
 

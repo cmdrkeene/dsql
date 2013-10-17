@@ -1,3 +1,4 @@
+// TODO terminate on semicolon
 package dsql
 
 import (
@@ -160,6 +161,32 @@ func TestParseInsert(t *testing.T) {
 			"id":   Value{"N", "1"},
 			"name": Value{"S", "a"},
 		},
+	}
+
+	actual, err := Parse(source)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("expected", expected)
+		t.Error("actual  ", actual)
+	}
+}
+
+// CREATE TABLE messages (
+// 	group string HASH,
+// 	id number RANGE,
+// 	created string,
+// 	updated string,
+// 	INDEX created WITH (HASH=group, RANGE=created, PROJECTION=(id, created)),
+// 	INDEX updated WITH (HASH=group, RANGE=updated, PROJECTION=ALL)
+// )
+// WITH READ_UNITS=10, WRITE_UNITS=5;
+func TestParseCreate(t *testing.T) {
+	source := `create table messages (group string hash, id number range)`
+	expected := CreateTable{
+		TableName: "messages",
 	}
 
 	actual, err := Parse(source)

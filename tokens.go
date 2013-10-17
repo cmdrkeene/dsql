@@ -3,14 +3,16 @@ package dsql
 type Token rune
 
 const (
-	Keywords  = "select|insert|create|update|delete|from|where|set|limit|order|by|asc|desc|into|values|table"
-	Types     = "number|string|hash|range|key"
-	Operators = "=|>|>=|<|<=|like|and|or|between"
+	Keywords    = "^(select|insert|create|update|delete|from|where|set|limit|order|by|asc|desc|into|values|table|with)$"
+	Types       = "^(number|numberset|string|stringset)$"
+	Constraints = "^(hash|range|key|project|index|all|projection|read_units|write_units)$"
+	Operators   = "^(=|>|>=|<|<=|like|and|or|between)$"
 )
 
 const (
 	Keyword Token = iota
 	Identifier
+	Constraint
 	Wildcard
 	Type
 	String
@@ -27,6 +29,7 @@ const (
 var Names = map[Token]string{
 	Keyword:    "Keyword",
 	Identifier: "Identifier",
+	Constraint: "Constraint",
 	Wildcard:   "Wildcard",
 	Type:       "Type",
 	String:     "String",
@@ -50,6 +53,7 @@ func names(tokens []Token) (n []string) {
 const (
 	K = Keyword
 	I = Identifier
+	X = Constraint
 	W = Wildcard
 	T = Type
 	N = Number
@@ -66,6 +70,7 @@ const (
 var Symbols = map[Token]string{
 	Keyword:    "K",
 	Identifier: "I",
+	Constraint: "X",
 	Wildcard:   "W",
 	Type:       "T",
 	String:     "S",
