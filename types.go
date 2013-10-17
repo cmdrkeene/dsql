@@ -163,3 +163,10 @@ type Schema struct {
 	AttributeName string
 	KeyType       string
 }
+
+type DeleteItem struct {
+}
+
+type DeleteTable struct {
+	TableName string
+}

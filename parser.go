@@ -43,6 +43,10 @@ func (p *Parser) Parse() (interface{}, error) {
 			req = p.Update()
 		case "create":
 			req = p.Create()
+		case "delete":
+			req = p.Delete()
+		case "drop":
+			req = p.Drop()
 		}
 	}
 	return req, p.err
@@ -154,7 +158,6 @@ func (p *Parser) Update() interface{} {
 	return update
 }
 
-//create table messages (group string hash, id number range)
 func (p *Parser) Create() interface{} {
 	create := CreateTable{}
 
@@ -185,6 +188,17 @@ func (p *Parser) Create() interface{} {
 	p.match(Semicolon)
 
 	return create
+}
+
+func (p *Parser) Delete() interface{} {
+	p.matchS(Keyword, "delete")
+	return DeleteItem{}
+}
+
+func (p *Parser) Drop() interface{} {
+	p.matchS(Keyword, "drop")
+	p.matchS(Keyword, "table")
+	return DeleteTable{p.match(Identifier)}
 }
 
 func (p *Parser) consume() Token {

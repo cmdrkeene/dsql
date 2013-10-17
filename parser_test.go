@@ -1,6 +1,7 @@
 // TODO delete
 // TODO insert multiple
 // TODO create with index
+// TODO delete table
 package dsql
 
 import (
@@ -240,6 +241,21 @@ func TestParseCreateThroughput(t *testing.T) {
 	}
 	expected.ProvisionedThroughput.ReadCapacityUnits = 10
 	expected.ProvisionedThroughput.WriteCapacityUnits = 5
+
+	actual, err := Parse(source)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("expected", expected)
+		t.Error("actual  ", actual)
+	}
+}
+
+func TestDropTable(t *testing.T) {
+	source := `drop table messages;`
+	expected := DeleteTable{TableName: "messages"}
 
 	actual, err := Parse(source)
 	if err != nil {

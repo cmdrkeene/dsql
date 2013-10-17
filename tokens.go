@@ -3,7 +3,7 @@ package dsql
 type Token rune
 
 const (
-	Keywords    = "^(select|insert|create|update|delete|from|where|set|limit|order|by|asc|desc|into|values|table|with)$"
+	Keywords    = "^(select|insert|create|update|delete|drop|from|where|set|limit|order|by|asc|desc|into|values|table|with)$"
 	Types       = "^(number|numberset|string|stringset)$"
 	Constraints = "^(hash|range|index|all|projection)$"
 	Operators   = "^(=|>|>=|<|<=|like|and|or|between)$"
