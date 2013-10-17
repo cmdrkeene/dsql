@@ -174,19 +174,30 @@ func TestParseInsert(t *testing.T) {
 	}
 }
 
-// CREATE TABLE messages (
-// 	group string HASH,
-// 	id number RANGE,
-// 	created string,
-// 	updated string,
-// 	INDEX created WITH (HASH=group, RANGE=created, PROJECTION=(id, created)),
-// 	INDEX updated WITH (HASH=group, RANGE=updated, PROJECTION=ALL)
-// )
-// WITH READ_UNITS=10, WRITE_UNITS=5;
 func TestParseCreate(t *testing.T) {
 	source := `create table messages (group string hash, id number range)`
 	expected := CreateTable{
 		TableName: "messages",
+		AttributeDefinitions: []AttributeDefinition{
+			AttributeDefinition{
+				AttributeName: "group",
+				AttributeType: "S",
+			},
+			AttributeDefinition{
+				AttributeName: "id",
+				AttributeType: "N",
+			},
+		},
+		KeySchema: []Schema{
+			Schema{
+				AttributeName: "group",
+				KeyType:       "HASH",
+			},
+			Schema{
+				AttributeName: "id",
+				KeyType:       "RANGE",
+			},
+		},
 	}
 
 	actual, err := Parse(source)

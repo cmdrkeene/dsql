@@ -41,6 +41,8 @@ func (p *Parser) Parse() (interface{}, error) {
 			req = p.Insert()
 		case "update":
 			req = p.Update()
+		case "create":
+			req = p.Create()
 		}
 	}
 	return req, p.err
@@ -84,34 +86,6 @@ func (p *Parser) Select() interface{} {
 	return query
 }
 
-type Expression struct {
-	Identifier       string
-	Operator         string
-	ValueToken       Token
-	ValueText        string
-	ValueBetweenText string
-}
-
-func (p *Parser) expr() (exp Expression) {
-	exp.Identifier = p.match(Identifier)
-
-	if p.text() == "between" {
-		exp.Operator = p.match(Operator)
-		p.match(LeftParen)
-		exp.ValueToken = p.token()
-		exp.ValueText = trim(p.match(String, Number))
-		p.match(Comma)
-		exp.ValueBetweenText = trim(p.match(String, Number))
-		p.match(RightParen)
-	} else {
-		exp.Operator = p.match(Operator)
-		exp.ValueToken = p.token()
-		exp.ValueText = trim(p.match(String, Number))
-	}
-	return exp
-}
-
-// insert into name (id, name) values (1, "a")
 // TODO insert into name (id, name) values (1, "a", 2, "b")
 func (p *Parser) Insert() interface{} {
 	p.matchS(Keyword, "insert")
@@ -154,7 +128,6 @@ func (p *Parser) Insert() interface{} {
 	return putItem
 }
 
-// update messages set name = "b" where id = 1
 func (p *Parser) Update() interface{} {
 	update := UpdateItem{}
 
@@ -178,6 +151,24 @@ func (p *Parser) Update() interface{} {
 	}
 
 	return update
+}
+
+//create table messages (group string hash, id number range)
+func (p *Parser) Create() interface{} {
+	create := CreateTable{}
+
+	p.matchS(Keyword, "create")
+	p.matchS(Keyword, "table")
+	create.TableName = p.match(Identifier)
+	p.match(LeftParen)
+
+	create.AddDefinition(p.definition())
+	for p.token() == Comma {
+		p.match(Comma)
+		create.AddDefinition(p.definition())
+	}
+
+	return create
 }
 
 func (p *Parser) consume() Token {
@@ -226,4 +217,46 @@ func (p *Parser) panic() {
 
 func (p *Parser) print() {
 	log.Printf("current token: %s (%s)", Names[p.token()], p.text())
+}
+
+type Expression struct {
+	Identifier       string
+	Operator         string
+	ValueToken       Token
+	ValueText        string
+	ValueBetweenText string
+}
+
+func (p *Parser) expr() (exp Expression) {
+	exp.Identifier = p.match(Identifier)
+
+	if p.text() == "between" {
+		exp.Operator = p.match(Operator)
+		p.match(LeftParen)
+		exp.ValueToken = p.token()
+		exp.ValueText = trim(p.match(String, Number))
+		p.match(Comma)
+		exp.ValueBetweenText = trim(p.match(String, Number))
+		p.match(RightParen)
+	} else {
+		exp.Operator = p.match(Operator)
+		exp.ValueToken = p.token()
+		exp.ValueText = trim(p.match(String, Number))
+	}
+	return exp
+}
+
+type Definition struct {
+	Identifier string
+	Type       string
+	Constraint string
+}
+
+func (p *Parser) definition() (def Definition) {
+	def.Identifier = p.match(Identifier)
+	def.Type = p.match(Type)
+	if p.token() == Constraint {
+		def.Constraint = p.match(Constraint)
+	}
+	return def
 }

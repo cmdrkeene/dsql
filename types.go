@@ -1,5 +1,7 @@
 package dsql
 
+import "strings"
+
 var DynamoOperators = map[string]string{
 	"=":       "EQ",
 	"<":       "LT",
@@ -13,6 +15,15 @@ var DynamoOperators = map[string]string{
 var DynamoTypes = map[Token]string{
 	Number: "N",
 	String: "S",
+}
+
+var DefinitionTypes = map[string]string{
+	"string":    "S",
+	"stringset": "SS",
+	"number":    "N",
+	"numberset": "NS",
+	"binary":    "B",
+	"binaryset": "BS",
 }
 
 func NewValue(t Token, s string) Value {
@@ -102,11 +113,25 @@ type Update struct {
 
 type CreateTable struct {
 	TableName            string
-	AttributeDefinitions []Definition
+	AttributeDefinitions []AttributeDefinition
 	KeySchema            []Schema
 }
 
-type Definition struct {
+func (c *CreateTable) AddDefinition(d Definition) {
+	c.AttributeDefinitions = append(
+		c.AttributeDefinitions,
+		AttributeDefinition{d.Identifier, DefinitionTypes[d.Type]},
+	)
+
+	if d.Constraint != "" {
+		c.KeySchema = append(
+			c.KeySchema,
+			Schema{d.Identifier, strings.ToUpper(d.Constraint)},
+		)
+	}
+}
+
+type AttributeDefinition struct {
 	AttributeName string
 	AttributeType string
 }
