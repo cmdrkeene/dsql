@@ -1,3 +1,4 @@
+// consider EOF and Semicolon equivalent - Terminator or something
 package dsql
 
 import (
