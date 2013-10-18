@@ -1,3 +1,4 @@
+// Convert query string into tokens
 package dsql
 
 import (

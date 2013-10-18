@@ -2,35 +2,24 @@ package dsql
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
+	"io"
+	"io/ioutil"
+	"strings"
 	"testing"
 )
 
 func TestQuery(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Print("response")
-		fmt.Fprint(w, `
-      {
-        "ConsumedCapacity": {"CapacityUnits": 1,"TableName": "users"}
-        "Item": {
-          "id": {"N": "123"},
-          "name": {"S": "Brandon"},
-        }
-      }
-    `)
-	}))
-	defer ts.Close()
-
-	u, _ := url.Parse(ts.URL)
-	name := fmt.Sprintf("dyanmodb://access:secret@%s", u.Host)
+	name := "dyanmodb://access:secret@us-east-1"
 
 	db, err := sql.Open("dynamodb", name)
 	if err != nil {
 		t.Error(err)
+	}
+
+	Clients[name] = MockClient{
+		OnPost: func(Operation, Request) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader(`{"Count": 1}`)), nil
+		},
 	}
 
 	rows, err := db.Query("SELECT id, name FROM users WHERE id=1;")

@@ -1,3 +1,4 @@
+// Convert tokens into requests
 package dsql
 
 import (
@@ -9,7 +10,6 @@ import (
 
 var ErrUnexpectedToken = errors.New("parser: unexpected token")
 
-// TODO change interface{} to Request interface
 func Parse(source string) (Request, error) {
 	parser := &Parser{
 		src: source,

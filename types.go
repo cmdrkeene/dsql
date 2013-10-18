@@ -1,16 +1,14 @@
+// Declare types and conversion maps
 package dsql
 
 import (
-	"encoding/json"
-	"github.com/groupme/dynamo"
 	"strconv"
 	"strings"
 )
 
-type Request interface{}
-type Result interface{}
+type Operation string
 
-var QueryOperators = map[string]string{
+var ComparisonOperators = map[string]string{
 	"=":       "EQ",
 	"<":       "LT",
 	"<=":      "LE",
@@ -80,7 +78,7 @@ func (q *Query) AddCondition(exp Expression) {
 	}
 
 	q.KeyConditions[exp.Identifier] = KeyCondition{
-		ComparisonOperator: QueryOperators[exp.Operator],
+		ComparisonOperator: ComparisonOperators[exp.Operator],
 		AttributeValueList: values,
 	}
 }
@@ -196,26 +194,10 @@ type DeleteTable struct {
 	TableName string
 }
 
-func marshal(r Request) (string, error) {
-	b, err := json.Marshal(r)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
-func operation(r Request) string {
+func operation(r Request) Operation {
 	switch r.(type) {
 	case Query:
-		return dynamo.OpQuery
+		return Operation("DynamoDB_20120810.Query")
 	}
 	return ""
-}
-
-func result(r Request) Result {
-	switch r.(type) {
-	case Query:
-		return QueryResult{}
-	}
-	return nil
 }
