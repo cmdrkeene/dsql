@@ -71,6 +71,30 @@ func (cn *conn) Query(query string, args []driver.Value) (driver.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer body.Close()
 
-	return req.Rows(body)
+	err = req.Decode(body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rows{req: req}, nil
+}
+
+type rows struct {
+	req  Request
+	done bool
+}
+
+func (r *rows) Columns() []string {
+	return []string{"a", "b", "c"}
+}
+
+func (r *rows) Close() error {
+	return nil
+}
+
+func (r *rows) Next(dest []driver.Value) error {
+	dest = []driver.Value{"ass", "ass", "ass"}
+	return nil
 }
