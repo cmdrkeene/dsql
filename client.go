@@ -14,8 +14,6 @@ import (
 
 var Clients = map[string]Client{} // for testing
 
-type Request interface{}
-
 type Client interface {
 	Post(Operation, Request) (io.ReadCloser, error)
 }

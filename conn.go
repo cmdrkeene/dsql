@@ -21,8 +21,6 @@ package dsql
 import (
 	"database/sql"
 	"database/sql/driver"
-	"io/ioutil"
-	"log"
 )
 
 func init() {
@@ -74,14 +72,5 @@ func (cn *conn) Query(query string, args []driver.Value) (driver.Rows, error) {
 		return nil, err
 	}
 
-	defer body.Close()
-
-	b, err := ioutil.ReadAll(body)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Printf("body: %s", string(b))
-
-	return nil, nil
+	return req.Rows(body)
 }

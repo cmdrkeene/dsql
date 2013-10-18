@@ -2,11 +2,18 @@
 package dsql
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"io"
+
 	"strconv"
 	"strings"
 )
 
 type Operation string
+type Request interface {
+	Rows(io.ReadCloser) (driver.Rows, error)
+}
 
 var ComparisonOperators = map[string]string{
 	"=":       "EQ",
@@ -50,7 +57,6 @@ type Query struct {
 	TableName       string
 	AttributesToGet []string
 	KeyConditions   map[string]KeyCondition
-	result          QueryResult
 }
 
 func (q *Query) AddColumn(col string) {
@@ -83,6 +89,17 @@ func (q *Query) AddCondition(exp Expression) {
 	}
 }
 
+func (q Query) Rows(r io.ReadCloser) (driver.Rows, error) {
+	defer r.Close()
+	dec := json.NewDecoder(r)
+	result := QueryResult{}
+	err := dec.Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 type QueryResult struct {
 	ConsumedCapacity struct {
 		CapcityUnits int
@@ -93,9 +110,25 @@ type QueryResult struct {
 	LastEvaluatedKey map[string]Value
 }
 
+func (qr QueryResult) Columns() []string {
+	return []string{"ass", "ass", "ass"}
+}
+
+func (qr QueryResult) Close() error {
+	return nil
+}
+
+func (qr QueryResult) Next(dest []driver.Value) error {
+	return io.EOF
+}
+
 type PutItem struct {
 	TableName string
 	Item      map[string]Value
+}
+
+func (p PutItem) Rows(r io.ReadCloser) (driver.Rows, error) {
+	return nil, nil
 }
 
 type UpdateItem struct {
@@ -104,7 +137,11 @@ type UpdateItem struct {
 	AttributeUpdates map[string]Update
 }
 
-func (u *UpdateItem) AddKey(exp Expression) {
+func (u UpdateItem) Rows(r io.ReadCloser) (driver.Rows, error) {
+	return nil, nil
+}
+
+func (u UpdateItem) AddKey(exp Expression) {
 	if u.Key == nil {
 		u.Key = map[string]Value{}
 	}
@@ -128,6 +165,10 @@ type Update struct {
 	Action string // PUT, ADD, DELETE
 }
 
+func (u Update) Rows(r io.ReadCloser) (driver.Rows, error) {
+	return nil, nil
+}
+
 type CreateTable struct {
 	TableName             string
 	AttributeDefinitions  []AttributeDefinition
@@ -136,6 +177,10 @@ type CreateTable struct {
 		ReadCapacityUnits  int
 		WriteCapacityUnits int
 	}
+}
+
+func (c CreateTable) Rows(r io.ReadCloser) (driver.Rows, error) {
+	return nil, nil
 }
 
 func (c *CreateTable) AddDefinition(d Definition) {
@@ -183,6 +228,10 @@ type DeleteItem struct {
 	Key       map[string]Value
 }
 
+func (d DeleteItem) Rows(r io.ReadCloser) (driver.Rows, error) {
+	return nil, nil
+}
+
 func (d *DeleteItem) AddKey(exp Expression) {
 	if d.Key == nil {
 		d.Key = map[string]Value{}
@@ -192,6 +241,10 @@ func (d *DeleteItem) AddKey(exp Expression) {
 
 type DeleteTable struct {
 	TableName string
+}
+
+func (d DeleteTable) Rows(r io.ReadCloser) (driver.Rows, error) {
+	return nil, nil
 }
 
 func operation(r Request) Operation {

@@ -31,7 +31,7 @@ func (p *Parser) Parse() (Request, error) {
 		}
 	}()
 
-	var req interface{}
+	var req Request
 
 	switch p.token() {
 	case Keyword:
@@ -204,7 +204,7 @@ func (p *Parser) Delete() Request {
 	return deleteItem
 }
 
-func (p *Parser) Drop() interface{} {
+func (p *Parser) Drop() Request {
 	p.matchS(Keyword, "drop")
 	p.matchS(Keyword, "table")
 	return DeleteTable{p.match(Identifier)}
