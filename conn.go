@@ -19,10 +19,10 @@ package dsql
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"github.com/groupme/dynamo"
 	"log"
 	"net/url"
-	"strings"
 )
 
 func init() {
@@ -39,12 +39,7 @@ func (d *drv) Open(name string) (driver.Conn, error) {
 
 	accessKey := u.User.Username()
 	secretKey, _ := u.User.Password()
-	db := dynamo.Open(accessKey, secretKey, u.Host)
-
-	// for use with net/http/httptest
-	if strings.HasPrefix(u.Host, "localhost") {
-		db.URL = u.Host
-	}
+	db := dynamo.Open(accessKey, secretKey, "us-east-1") // FIXME
 
 	return &conn{db: db}, nil
 }
@@ -85,16 +80,35 @@ func (cn *conn) Exec(query string, args []driver.Value) (driver.Result, error) {
 	return nil, nil
 }
 
+// TODO encode args, if any
+// TODO convert to rows
 func (cn *conn) Query(query string, args []driver.Value) (driver.Rows, error) {
-	// encode args, if any
-	// parse query
 	req, err := Parse(query)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("%#v", req)
 
-	// make request
-	// convert to rows
+	op := operation(req)
+	res := result(req)
+	body, err := marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cn.db.Do(op, body, res)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Print(res)
+
 	return nil, nil
+}
+
+func (cn *conn) encode(i interface{}) (string, error) {
+	b, err := json.Marshal(i)
+	if err != nil {
+		return "", nil
+	}
+	return string(b), nil
 }

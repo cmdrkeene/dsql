@@ -9,7 +9,8 @@ import (
 
 var ErrUnexpectedToken = errors.New("parser: unexpected token")
 
-func Parse(source string) (interface{}, error) {
+// TODO change interface{} to Request interface
+func Parse(source string) (Request, error) {
 	parser := &Parser{
 		src: source,
 		lex: NewLexer(strings.NewReader(source)),
@@ -23,7 +24,7 @@ type Parser struct {
 	err error
 }
 
-func (p *Parser) Parse() (interface{}, error) {
+func (p *Parser) Parse() (Request, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
@@ -52,7 +53,7 @@ func (p *Parser) Parse() (interface{}, error) {
 	return req, p.err
 }
 
-func (p *Parser) Select() interface{} {
+func (p *Parser) Select() Request {
 	query := Query{}
 
 	p.match(Keyword)
@@ -91,7 +92,7 @@ func (p *Parser) Select() interface{} {
 	return query
 }
 
-func (p *Parser) Insert() interface{} {
+func (p *Parser) Insert() Request {
 	p.matchS(Keyword, "insert")
 	p.matchS(Keyword, "into")
 
@@ -130,7 +131,7 @@ func (p *Parser) Insert() interface{} {
 	return PutItem{TableName: table, Item: item}
 }
 
-func (p *Parser) Update() interface{} {
+func (p *Parser) Update() Request {
 	update := UpdateItem{}
 
 	p.matchS(Keyword, "update")
@@ -157,7 +158,7 @@ func (p *Parser) Update() interface{} {
 	return update
 }
 
-func (p *Parser) Create() interface{} {
+func (p *Parser) Create() Request {
 	create := CreateTable{}
 
 	p.matchS(Keyword, "create")
@@ -189,7 +190,7 @@ func (p *Parser) Create() interface{} {
 	return create
 }
 
-func (p *Parser) Delete() interface{} {
+func (p *Parser) Delete() Request {
 	p.matchS(Keyword, "delete")
 	p.matchS(Keyword, "from")
 	deleteItem := DeleteItem{TableName: p.match(Identifier)}

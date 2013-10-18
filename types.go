@@ -1,9 +1,14 @@
 package dsql
 
 import (
+	"encoding/json"
+	"github.com/groupme/dynamo"
 	"strconv"
 	"strings"
 )
+
+type Request interface{}
+type Result interface{}
 
 var QueryOperators = map[string]string{
 	"=":       "EQ",
@@ -47,6 +52,7 @@ type Query struct {
 	TableName       string
 	AttributesToGet []string
 	KeyConditions   map[string]KeyCondition
+	result          QueryResult
 }
 
 func (q *Query) AddColumn(col string) {
@@ -77,6 +83,16 @@ func (q *Query) AddCondition(exp Expression) {
 		ComparisonOperator: QueryOperators[exp.Operator],
 		AttributeValueList: values,
 	}
+}
+
+type QueryResult struct {
+	ConsumedCapacity struct {
+		CapcityUnits int
+		TableName    string
+	}
+	Count            int
+	Items            map[string]Value
+	LastEvaluatedKey map[string]Value
 }
 
 type PutItem struct {
@@ -178,4 +194,28 @@ func (d *DeleteItem) AddKey(exp Expression) {
 
 type DeleteTable struct {
 	TableName string
+}
+
+func marshal(r Request) (string, error) {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func operation(r Request) string {
+	switch r.(type) {
+	case Query:
+		return dynamo.OpQuery
+	}
+	return ""
+}
+
+func result(r Request) Result {
+	switch r.(type) {
+	case Query:
+		return QueryResult{}
+	}
+	return nil
 }
