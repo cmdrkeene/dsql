@@ -1,49 +1,57 @@
 package dsql
 
-// func TestQuery(t *testing.T) {
-// 	name := "dyanmodb://access:secret@us-east-1"
+import (
+	"database/sql"
+	"io"
+	"io/ioutil"
+	"strings"
+	"testing"
+)
 
-// 	db, err := sql.Open("dynamodb", name)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
+func TestQuery(t *testing.T) {
+	name := "dyanmodb://access:secret@us-east-1"
 
-// 	Clients[name] = MockClient{
-// 		OnPost: func(Operation, Request) (io.ReadCloser, error) {
-// 			return ioutil.NopCloser(strings.NewReader(`{
-// 				"Count": 1,
-// 				"Items": [
-// 					{
-// 						"id": {"N": "1"},
-// 						"email": {"S": "test@example.com"}
-// 					}
-// 				]
-// 			}`)), nil
-// 		},
-// 	}
+	db, err := sql.Open("dynamodb", name)
+	if err != nil {
+		t.Error(err)
+	}
 
-// 	rows, err := db.Query("SELECT id, email FROM users WHERE id=1;")
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
+	Clients[name] = MockClient{
+		OnPost: func(Operation, Request) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader(`{
+				"Count": 1,
+				"Items": [
+					{
+						"id": {"N": "1"},
+						"email": {"S": "test@example.com"}
+					}
+				]
+			}`)), nil
+		},
+	}
 
-// 	if !rows.Next() {
-// 		t.Fatal("expected row")
-// 	}
+	rows, err := db.Query("SELECT id, email FROM users WHERE id=1;")
+	if err != nil {
+		t.Error(err)
+	}
 
-// 	var id int
-// 	var email string
+	if !rows.Next() {
+		t.Fatal("expected row")
+	}
 
-// 	err = rows.Scan(&id, &email)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+	var id int
+	var email string
 
-// 	if id != 1 {
-// 		t.Error("bad id", id)
-// 	}
+	err = rows.Scan(&id, &email)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	if email != "test@example.com" {
-// 		t.Error("bad email", email)
-// 	}
-// }
+	if id != 1 {
+		t.Error("id", id)
+	}
+
+	if email != "test@example.com" {
+		t.Error("email", email)
+	}
+}

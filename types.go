@@ -207,6 +207,7 @@ type DeleteTable struct {
 }
 
 // Results
+// These must satisfy the driver.Rows interface
 
 type QueryResult struct {
 	ConsumedCapacity struct {
