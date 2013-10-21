@@ -2,11 +2,10 @@
 
  SQL dialect for interacting with DynamoDB.
 
- Writing Dynamo queries is cumbersome, SQL is easy.
+ Package implements a `database/sql` driver.
 
 ## TODO
 
-* database/sql interface
 * test against fake dynamo
 * test against actual dynamo
 * insert multiple items
