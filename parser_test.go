@@ -20,6 +20,21 @@ func TestParseSelectWildcard(t *testing.T) {
 	}
 }
 
+func TestParseSelectWithoutSemicolon(t *testing.T) {
+	source := "select * from messages"
+	expected := Query{TableName: "messages"}
+
+	actual, err := Parse(source)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("expected", expected)
+		t.Error("actual  ", actual)
+	}
+}
+
 func TestParseSelectColumns(t *testing.T) {
 	source := "select id, name from messages;"
 	expected := Query{

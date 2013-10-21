@@ -19,7 +19,6 @@ const (
 	Number
 	Operator
 	Comma
-	Semicolon
 	LeftParen
 	RightParen
 	EOF
@@ -36,7 +35,6 @@ var Names = map[Token]string{
 	Number:     "Number",
 	Operator:   "Operator",
 	Comma:      ",",
-	Semicolon:  ";",
 	LeftParen:  "(",
 	RightParen: ")",
 	EOF:        "EOF",
@@ -60,7 +58,6 @@ const (
 	S = String
 	O = Operator
 	C = Comma
-	M = Semicolon
 	L = LeftParen
 	R = RightParen
 	E = EOF
@@ -77,7 +74,6 @@ var Symbols = map[Token]string{
 	Number:     "N",
 	Operator:   "O",
 	Comma:      "C",
-	Semicolon:  "M",
 	LeftParen:  "L",
 	RightParen: "R",
 	EOF:        "E",

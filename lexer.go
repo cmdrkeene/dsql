@@ -78,7 +78,7 @@ func (l *Lexer) tokenize(r rune) (t Token) {
 			case ",":
 				t = Comma
 			case ";":
-				t = Semicolon
+				t = EOF
 			case "(":
 				t = LeftParen
 			case ")":

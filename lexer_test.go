@@ -19,6 +19,10 @@ func TestLexerCases(t *testing.T) {
 			[]Token{K, W, K, I, E},
 		},
 		Case{
+			`SELECT * FROM users;`,
+			[]Token{K, W, K, I, E},
+		},
+		Case{
 			`SELECT * FROM users LIMIT 10`,
 			[]Token{K, W, K, I, K, N, E},
 		},
@@ -60,7 +64,7 @@ func TestLexerCases(t *testing.T) {
 				INDEX created WITH (HASH=group, RANGE=created, PROJECTION=(id, created)),
 				INDEX updated WITH (HASH=group, RANGE=updated, PROJECTION=ALL)
 			)
-			WITH (READ=10, WRITE=10);`,
+			WITH (READ=10, WRITE=10)`,
 			[]Token{
 				K, K, I, L,
 				I, T, X, C,
@@ -70,7 +74,7 @@ func TestLexerCases(t *testing.T) {
 				X, I, K, L, X, O, I, C, X, O, I, C, X, O, L, I, C, I, R, R, C,
 				X, I, K, L, X, O, I, C, X, O, I, C, X, O, X, R,
 				R,
-				K, L, I, O, N, C, I, O, N, R, M, E},
+				K, L, I, O, N, C, I, O, N, R, E},
 		},
 	}
 

@@ -75,7 +75,7 @@ func (p *Parser) Select() Request {
 
 	query.TableName = p.match(Identifier)
 
-	if p.token() == Semicolon {
+	if p.token() == EOF {
 		return query
 	}
 
@@ -88,7 +88,6 @@ func (p *Parser) Select() Request {
 		query.AddCondition(p.expr())
 	}
 
-	p.match(Semicolon)
 	return query
 }
 
@@ -128,8 +127,6 @@ func (p *Parser) Insert() Request {
 		item[col] = attrs[i]
 	}
 
-	p.match(Semicolon)
-
 	return PutItem{TableName: table, Item: item}
 }
 
@@ -154,8 +151,6 @@ func (p *Parser) Update() Request {
 		p.match(Operator)
 		update.AddKey(p.expr())
 	}
-
-	p.match(Semicolon)
 
 	return update
 }
@@ -187,8 +182,6 @@ func (p *Parser) Create() Request {
 		p.match(RightParen)
 	}
 
-	p.match(Semicolon)
-
 	return create
 }
 
@@ -202,7 +195,7 @@ func (p *Parser) Delete() Request {
 		p.matchS(Operator, "and")
 		deleteItem.AddKey(p.expr())
 	}
-	p.match(Semicolon)
+
 	return deleteItem
 }
 
