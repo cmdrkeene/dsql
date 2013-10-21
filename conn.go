@@ -67,7 +67,7 @@ func (cn *conn) Query(query string, args []driver.Value) (driver.Rows, error) {
 		return nil, err
 	}
 
-	body, err := cn.cl.Post(operation(req), req)
+	body, err := cn.cl.Post(req)
 	if err != nil {
 		return nil, err
 	}

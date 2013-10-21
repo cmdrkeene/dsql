@@ -110,20 +110,22 @@ func (p *Parser) Insert() Request {
 
 	p.matchS(Keyword, "values")
 	p.match(LeftParen)
-	values := []Value{NewValue(p.token(), p.text())}
+
+	attrs := []Attribute{p.attribute()}
 	p.match(String, Number)
 	for p.token() == Comma {
 		p.match(Comma)
-		value := NewValue(p.token(), p.text())
+		attr := p.attribute()
 		p.match(String, Number)
-		values = append(values, value)
+		attrs = append(attrs, attr)
 	}
+
 	p.match(RightParen)
 
-	item := map[string]Value{}
+	item := Item{}
 
 	for i, col := range columns {
-		item[col] = values[i]
+		item[col] = attrs[i]
 	}
 
 	p.match(Semicolon)
@@ -219,7 +221,20 @@ func (p *Parser) token() Token {
 }
 
 func (p *Parser) text() string {
-	return p.lex.Text()
+	return strings.Trim(p.lex.Text(), `"`)
+}
+
+func (p *Parser) attribute() (a Attribute) {
+	switch p.token() {
+	case String:
+		a.S = p.text()
+	case Number:
+		a.N = p.text()
+	default:
+		p.print()
+		panic("unknown attribute")
+	}
+	return a
 }
 
 func (p *Parser) match(tokens ...Token) (s string) {
@@ -259,11 +274,29 @@ func (p *Parser) print() {
 }
 
 type Expression struct {
-	Identifier       string
-	Operator         string
-	ValueToken       Token
-	ValueText        string
-	ValueBetweenText string
+	Identifier  string
+	Operator    string
+	Token       Token
+	Text        string
+	BetweenText string
+}
+
+func (exp *Expression) Attribute() (a Attribute) {
+	return exp.newAttr(exp.Text)
+}
+
+func (exp *Expression) BetweenAttribute() (a Attribute) {
+	return exp.newAttr(exp.BetweenText)
+}
+
+func (exp *Expression) newAttr(s string) (a Attribute) {
+	switch exp.Token {
+	case String:
+		a = Attribute{S: s}
+	case Number:
+		a = Attribute{N: s}
+	}
+	return a
 }
 
 func (p *Parser) expr() (exp Expression) {
@@ -272,15 +305,15 @@ func (p *Parser) expr() (exp Expression) {
 	if p.text() == "between" {
 		exp.Operator = p.match(Operator)
 		p.match(LeftParen)
-		exp.ValueToken = p.token()
-		exp.ValueText = trim(p.match(String, Number))
+		exp.Token = p.token()
+		exp.Text = p.match(String, Number)
 		p.match(Comma)
-		exp.ValueBetweenText = trim(p.match(String, Number))
+		exp.BetweenText = p.match(String, Number)
 		p.match(RightParen)
 	} else {
 		exp.Operator = p.match(Operator)
-		exp.ValueToken = p.token()
-		exp.ValueText = trim(p.match(String, Number))
+		exp.Token = p.token()
+		exp.Text = p.match(String, Number)
 	}
 	return exp
 }

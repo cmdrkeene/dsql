@@ -2,16 +2,16 @@ package dsql
 
 type UpdateItem struct {
 	TableName        string
-	Key              map[string]Value
+	Key              Item
 	AttributeUpdates map[string]Update
 }
 
 func (u *UpdateItem) AddKey(exp Expression) {
 	if u.Key == nil {
-		u.Key = map[string]Value{}
+		u.Key = Item{}
 	}
 
-	u.Key[exp.Identifier] = NewValue(exp.ValueToken, exp.ValueText)
+	u.Key[exp.Identifier] = exp.Attribute()
 }
 
 func (u *UpdateItem) AddUpdate(exp Expression) {
@@ -20,12 +20,12 @@ func (u *UpdateItem) AddUpdate(exp Expression) {
 	}
 
 	u.AttributeUpdates[exp.Identifier] = Update{
-		Value:  NewValue(exp.ValueToken, exp.ValueText),
+		Value:  exp.Attribute(),
 		Action: "PUT",
 	}
 }
 
 type Update struct {
-	Value  Value
+	Value  Attribute
 	Action string // PUT, ADD, DELETE
 }

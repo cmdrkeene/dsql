@@ -49,7 +49,7 @@ func (c *CreateTable) AddDefinition(d Definition) {
 }
 
 func (c *CreateTable) AddThroughput(exp Expression) {
-	units, err := strconv.Atoi(exp.ValueText)
+	units, err := strconv.Atoi(exp.Text)
 	if err != nil {
 		panic("throughput must be an integer")
 	}

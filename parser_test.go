@@ -46,7 +46,7 @@ func TestParseSelectSingleCondition(t *testing.T) {
 		KeyConditions: map[string]KeyCondition{
 			"id": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []Value{Value{"N", "1"}},
+				AttributeValueList: []Attribute{Attribute{N: "1"}},
 			},
 		},
 	}
@@ -70,11 +70,11 @@ func TestParseSelectMultipleConditions(t *testing.T) {
 		KeyConditions: map[string]KeyCondition{
 			"id": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []Value{Value{"N", "1"}},
+				AttributeValueList: []Attribute{Attribute{N: "1"}},
 			},
 			"name": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []Value{Value{"S", "a"}},
+				AttributeValueList: []Attribute{Attribute{S: "a"}},
 			},
 		},
 	}
@@ -98,14 +98,11 @@ func TestParseSelectMultipleConditionsOr(t *testing.T) {
 		KeyConditions: map[string]KeyCondition{
 			"id": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []Value{Value{"N", "1"}},
+				AttributeValueList: []Attribute{Attribute{N: "1"}},
 			},
 			"name": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []Value{
-					Value{"S", "a"},
-					Value{"S", "b"},
-				},
+				AttributeValueList: []Attribute{Attribute{S: "a"}, Attribute{S: "b"}},
 			},
 		},
 	}
@@ -129,14 +126,11 @@ func TestParseSelectMultipleConditionsBetween(t *testing.T) {
 		KeyConditions: map[string]KeyCondition{
 			"id": KeyCondition{
 				ComparisonOperator: "EQ",
-				AttributeValueList: []Value{Value{"N", "1"}},
+				AttributeValueList: []Attribute{Attribute{N: "1"}},
 			},
 			"name": KeyCondition{
 				ComparisonOperator: "BETWEEN",
-				AttributeValueList: []Value{
-					Value{"S", "a"},
-					Value{"S", "z"},
-				},
+				AttributeValueList: []Attribute{Attribute{S: "a"}, Attribute{S: "z"}},
 			},
 		},
 	}
@@ -156,9 +150,9 @@ func TestParseInsert(t *testing.T) {
 	source := `insert into messages (id, name) values (1, "a");`
 	expected := PutItem{
 		TableName: "messages",
-		Item: map[string]Value{
-			"id":   Value{"N", "1"},
-			"name": Value{"S", "a"},
+		Item: Item{
+			"id":   Attribute{N: "1"},
+			"name": Attribute{S: "a"},
 		},
 	}
 
@@ -268,9 +262,9 @@ func TestDeleteItem(t *testing.T) {
 	source := `delete from messages where id = 1 AND name = "a";`
 	expected := DeleteItem{
 		TableName: "messages",
-		Key: map[string]Value{
-			"id":   Value{"N", "1"},
-			"name": Value{"S", "a"},
+		Key: Item{
+			"id":   Attribute{N: "1"},
+			"name": Attribute{S: "a"},
 		},
 	}
 

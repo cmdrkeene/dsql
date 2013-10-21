@@ -17,7 +17,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	Clients[name] = MockClient{
-		OnPost: func(Operation, Request) (io.ReadCloser, error) {
+		OnPost: func(Request) (io.ReadCloser, error) {
 			return ioutil.NopCloser(strings.NewReader(`{
 				"Count": 1,
 				"Items": [

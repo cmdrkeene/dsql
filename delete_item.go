@@ -2,12 +2,12 @@ package dsql
 
 type DeleteItem struct {
 	TableName string
-	Key       map[string]Value
+	Key       Item
 }
 
 func (d *DeleteItem) AddKey(exp Expression) {
 	if d.Key == nil {
-		d.Key = map[string]Value{}
+		d.Key = Item{}
 	}
-	d.Key[exp.Identifier] = Value{TokenTypes[exp.ValueToken], exp.ValueText}
+	d.Key[exp.Identifier] = exp.Attribute()
 }

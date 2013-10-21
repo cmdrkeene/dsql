@@ -17,7 +17,7 @@ var ComparisonOperators = map[string]string{
 
 type KeyCondition struct {
 	ComparisonOperator string
-	AttributeValueList []Value
+	AttributeValueList []Attribute
 }
 
 type Query struct {
@@ -35,26 +35,27 @@ func (q *Query) AddCondition(exp Expression) {
 		q.KeyConditions = map[string]KeyCondition{}
 	}
 
-	var values []Value
-	value := Value{TokenTypes[exp.ValueToken], exp.ValueText}
+	var attrs []Attribute
 
 	if _, ok := q.KeyConditions[exp.Identifier]; ok {
-		values = q.KeyConditions[exp.Identifier].AttributeValueList
-		values = append(values, value)
+		attrs = q.KeyConditions[exp.Identifier].AttributeValueList
+		attrs = append(attrs, exp.Attribute())
 	} else {
-		values = []Value{value}
+		attrs = []Attribute{exp.Attribute()}
 	}
 
-	if exp.ValueBetweenText != "" {
-		value = Value{TokenTypes[exp.ValueToken], exp.ValueBetweenText}
-		values = append(values, value)
+	if exp.BetweenText != "" {
+		attr := exp.BetweenAttribute()
+		attrs = append(attrs, attr)
 	}
 
 	q.KeyConditions[exp.Identifier] = KeyCondition{
 		ComparisonOperator: ComparisonOperators[exp.Operator],
-		AttributeValueList: values,
+		AttributeValueList: attrs,
 	}
 }
+
+type Item map[string]Attribute
 
 type QueryResult struct {
 	ConsumedCapacity struct {
@@ -62,8 +63,8 @@ type QueryResult struct {
 		TableName    string
 	}
 	Count            int
-	Items            []map[string]Item
-	LastEvaluatedKey map[string]Value
+	Items            []Item
+	LastEvaluatedKey Item
 
 	columns []string `json:"-"`
 	row     int      `json:"-"`

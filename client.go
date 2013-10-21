@@ -12,10 +12,12 @@ import (
 	"time"
 )
 
+type Request interface{}
+
 var Clients = map[string]Client{} // for testing
 
 type Client interface {
-	Post(Operation, Request) (io.ReadCloser, error)
+	Post(Request) (io.ReadCloser, error)
 }
 
 type DynamoClient struct {
@@ -50,7 +52,7 @@ func NewClient(name string) Client {
 	}
 }
 
-func (d *DynamoClient) Post(op Operation, req Request) (io.ReadCloser, error) {
+func (d *DynamoClient) Post(req Request) (io.ReadCloser, error) {
 	b, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -63,7 +65,7 @@ func (d *DynamoClient) Post(op Operation, req Request) (io.ReadCloser, error) {
 
 	request.Header.Set("Content-Type", "application/x-amz-json-1.0")
 	request.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
-	request.Header.Set("X-Amz-Target", string(op))
+	request.Header.Set("X-Amz-Target", operation(req))
 
 	err = aws4.Sign(d.keys, request)
 	if err != nil {
@@ -79,9 +81,17 @@ func (d *DynamoClient) Post(op Operation, req Request) (io.ReadCloser, error) {
 }
 
 type MockClient struct {
-	OnPost func(Operation, Request) (io.ReadCloser, error)
+	OnPost func(Request) (io.ReadCloser, error)
 }
 
-func (m MockClient) Post(o Operation, r Request) (io.ReadCloser, error) {
-	return m.OnPost(o, r)
+func (m MockClient) Post(r Request) (io.ReadCloser, error) {
+	return m.OnPost(r)
+}
+
+func operation(r Request) string {
+	switch r.(type) {
+	case Query:
+		return "DynamoDB_20120810.Query"
+	}
+	return ""
 }
