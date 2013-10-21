@@ -1,21 +1,4 @@
-/*
-  Package dsql is a SQL dialect for interacting with Amazon's DynamoDB.
-
-  Many methods are no-ops due to the lack of transactions, statements, etc.
-
-  Example:
-
-    import (
-      _ "github.com/cmdrkeene/dsql"
-      "database/sql"
-    )
-
-    func main() {
-      url := "dynamodb://access_key:secret_key@us-east-1"
-      db, _ := sql.Open("dynamodb", url)
-      rows, _ := db.Query("SELECT name FROM users WHERE id=$1", 123)
-    }
-*/
+// database/sql implementation
 package dsql
 
 import (
