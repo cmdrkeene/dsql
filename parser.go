@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var ErrUnexpectedToken = errors.New("parser: unexpected token")
+var ErrSyntax = errors.New("parser: syntax error")
 
 func Parse(source string) (Request, error) {
 	parser := &Parser{
@@ -24,14 +24,12 @@ type Parser struct {
 	err error
 }
 
-func (p *Parser) Parse() (Request, error) {
+func (p *Parser) Parse() (req Request, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println(r)
+			err = r.(error)
 		}
 	}()
-
-	var req Request
 
 	switch p.token() {
 	case Keyword:
@@ -48,8 +46,13 @@ func (p *Parser) Parse() (Request, error) {
 			req = p.Delete()
 		case "drop":
 			req = p.Drop()
+		default:
+			p.err = ErrSyntax
 		}
+	default:
+		p.err = ErrSyntax
 	}
+
 	return req, p.err
 }
 
@@ -254,10 +257,10 @@ func (p *Parser) matchS(t Token, s string) string {
 
 func (p *Parser) panic() {
 	err := fmt.Errorf(
-		"parser: unexpected token '%s' in '%s' expected %s",
+		"parser: unexpected token '%s' (%s) in '%s'",
 		p.text(),
-		p.src,
 		Names[p.token()],
+		p.src,
 	)
 	panic(err)
 }

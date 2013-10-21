@@ -2,6 +2,7 @@ package dsql
 
 import (
 	"database/sql"
+	"errors"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -56,7 +57,7 @@ func TestQuerySelect(t *testing.T) {
 	}
 }
 
-func TestQueryInsertError(t *testing.T) {
+func TestQueryClientError(t *testing.T) {
 	name := "dyanmodb://access:secret@us-east-1"
 
 	db, err := sql.Open("dynamodb", name)
@@ -64,15 +65,19 @@ func TestQueryInsertError(t *testing.T) {
 		t.Error(err)
 	}
 
+	e := errors.New("something went wrong")
+
 	Clients[name] = MockClient{
 		OnPost: func(Request) (io.ReadCloser, error) {
-			return ioutil.NopCloser(strings.NewReader(`{}`)), nil
+			return nil, e
 		},
 	}
 
 	_, err = db.Query(`INSERT INTO users (id, name) VALUES (1, "a")`)
-	if err != nil {
-		t.Error(err)
+
+	if err != e {
+		t.Error("expected ", e)
+		t.Error("actual   ", err)
 	}
 }
 

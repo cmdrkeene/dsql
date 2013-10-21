@@ -5,6 +5,25 @@ import (
 	"testing"
 )
 
+func TestParseError(t *testing.T) {
+	var err error
+
+	_, err = Parse("oh hai frenz")
+	if err != ErrSyntax {
+		t.Error("unexpected ", err)
+	}
+
+	_, err = Parse("selects")
+	if err != ErrSyntax {
+		t.Error("unexpected ", err)
+	}
+
+	_, err = Parse("create table foo(")
+	if err == nil {
+		t.Error("unexpected ", err)
+	}
+}
+
 func TestParseSelectWildcard(t *testing.T) {
 	source := "select * from messages;"
 	expected := Query{TableName: "messages"}
