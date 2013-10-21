@@ -21,6 +21,8 @@ package dsql
 import (
 	"database/sql"
 	"database/sql/driver"
+	"io"
+	"log"
 )
 
 func init() {
@@ -87,7 +89,7 @@ type rows struct {
 }
 
 func (r *rows) Columns() []string {
-	return []string{"a", "b", "c"}
+	return []string{"id", "email"}
 }
 
 func (r *rows) Close() error {
@@ -95,6 +97,14 @@ func (r *rows) Close() error {
 }
 
 func (r *rows) Next(dest []driver.Value) error {
-	dest = []driver.Value{"ass", "ass", "ass"}
+	if r.done {
+		log.Print("done")
+		return io.EOF
+	} else {
+		dest[0] = 1
+		dest[1] = "test@example.com"
+		r.done = true
+	}
+
 	return nil
 }
