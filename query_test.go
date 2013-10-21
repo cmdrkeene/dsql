@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestDecodeQuery(t *testing.T) {
+func TestQueryResult(t *testing.T) {
 	r := ioutil.NopCloser(strings.NewReader(`
   {
     "Count": 1,
@@ -22,7 +22,7 @@ func TestDecodeQuery(t *testing.T) {
   }`))
 
 	q := Query{}
-	res, err := decode(q, r)
+	res, err := q.Result(r)
 	if err != nil {
 		t.Error(err)
 	}

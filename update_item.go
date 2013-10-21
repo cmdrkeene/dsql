@@ -1,5 +1,15 @@
 package dsql
 
+import (
+	"database/sql/driver"
+	"io"
+)
+
+type Update struct {
+	Value  Attribute
+	Action string // PUT, ADD, DELETE
+}
+
 type UpdateItem struct {
 	TableName        string
 	Key              Item
@@ -25,7 +35,6 @@ func (u *UpdateItem) AddUpdate(exp Expression) {
 	}
 }
 
-type Update struct {
-	Value  Attribute
-	Action string // PUT, ADD, DELETE
+func (u UpdateItem) Result(body io.ReadCloser) (driver.Rows, error) {
+	return nil, nil
 }

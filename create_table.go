@@ -1,6 +1,8 @@
 package dsql
 
 import (
+	"database/sql/driver"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -62,4 +64,8 @@ func (c *CreateTable) AddThroughput(exp Expression) {
 	default:
 		panic("unknown create table parameter (expected read or write)")
 	}
+}
+
+func (c CreateTable) Result(body io.ReadCloser) (driver.Rows, error) {
+	return nil, nil
 }

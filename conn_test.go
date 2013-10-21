@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestQuery(t *testing.T) {
+func TestQuerySelect(t *testing.T) {
 	name := "dyanmodb://access:secret@us-east-1"
 
 	db, err := sql.Open("dynamodb", name)
@@ -53,5 +53,45 @@ func TestQuery(t *testing.T) {
 
 	if email != "test@example.com" {
 		t.Error("email", email)
+	}
+}
+
+func TestQueryInsertError(t *testing.T) {
+	name := "dyanmodb://access:secret@us-east-1"
+
+	db, err := sql.Open("dynamodb", name)
+	if err != nil {
+		t.Error(err)
+	}
+
+	Clients[name] = MockClient{
+		OnPost: func(Request) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader(`{}`)), nil
+		},
+	}
+
+	_, err = db.Query(`INSERT INTO users (id, name) VALUES (1, "a")`)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestQueryInsert(t *testing.T) {
+	name := "dyanmodb://access:secret@us-east-1"
+
+	db, err := sql.Open("dynamodb", name)
+	if err != nil {
+		t.Error(err)
+	}
+
+	Clients[name] = MockClient{
+		OnPost: func(Request) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader(`{}`)), nil
+		},
+	}
+
+	_, err = db.Query(`INSERT INTO users (id, name) VALUES (1, "a")`)
+	if err != nil {
+		t.Error(err)
 	}
 }

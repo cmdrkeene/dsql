@@ -3,6 +3,7 @@ package dsql
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"github.com/bmizerany/aws4"
@@ -12,7 +13,9 @@ import (
 	"time"
 )
 
-type Request interface{}
+type Request interface {
+	Result(io.ReadCloser) (driver.Rows, error)
+}
 
 var Clients = map[string]Client{} // for testing
 

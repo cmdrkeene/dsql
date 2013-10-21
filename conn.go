@@ -56,7 +56,7 @@ func (cn *conn) Query(query string, args []driver.Value) (driver.Rows, error) {
 	}
 	defer body.Close()
 
-	res, err := decode(req, body)
+	res, err := req.Result(body)
 	if err != nil {
 		return nil, err
 	}

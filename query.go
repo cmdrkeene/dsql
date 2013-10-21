@@ -2,8 +2,11 @@ package dsql
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"io"
 )
+
+type Item map[string]Attribute
 
 var ComparisonOperators = map[string]string{
 	"=":       "EQ",
@@ -55,7 +58,15 @@ func (q *Query) AddCondition(exp Expression) {
 	}
 }
 
-type Item map[string]Attribute
+func (q Query) Result(body io.ReadCloser) (driver.Rows, error) {
+	res := QueryResult{}
+	decoder := json.NewDecoder(body)
+	err := decoder.Decode(&res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 
 type QueryResult struct {
 	ConsumedCapacity struct {
