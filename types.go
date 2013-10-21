@@ -2,16 +2,16 @@
 package dsql
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"io"
+
 	"strconv"
 	"strings"
 )
 
 type Operation string
-type Request interface {
-	Decode(io.ReadCloser) error
-}
+type Request interface{}
 
 var ComparisonOperators = map[string]string{
 	"=":       "EQ",
@@ -55,7 +55,6 @@ type Query struct {
 	TableName       string
 	AttributesToGet []string
 	KeyConditions   map[string]KeyCondition
-	result          QueryResult `json:"-"`
 }
 
 func (q *Query) AddColumn(col string) {
@@ -88,23 +87,22 @@ func (q *Query) AddCondition(exp Expression) {
 	}
 }
 
-func (q Query) Decode(r io.ReadCloser) error {
-	dec := json.NewDecoder(r)
-	err := dec.Decode(&q.result)
-	if err != nil {
-		return err
-	}
-	return nil
+type Item struct {
+	S string `json:"S,omitempty`
+	N string `json:"N,omitempty`
 }
 
-type QueryResult struct {
-	ConsumedCapacity struct {
-		CapcityUnits int
-		TableName    string
+func (i Item) Value() interface{} {
+	if i.S != "" {
+		return []byte(i.S)
 	}
-	Count            int
-	Items            map[string]Value
-	LastEvaluatedKey map[string]Value
+
+	if i.N != "" {
+		i, _ := strconv.Atoi(i.N)
+		return i
+	}
+
+	return nil
 }
 
 type PutItem struct {
@@ -112,18 +110,10 @@ type PutItem struct {
 	Item      map[string]Value
 }
 
-func (p PutItem) Decode(r io.ReadCloser) error {
-	return nil
-}
-
 type UpdateItem struct {
 	TableName        string
 	Key              map[string]Value
 	AttributeUpdates map[string]Update
-}
-
-func (u UpdateItem) Decode(r io.ReadCloser) error {
-	return nil
 }
 
 func (u *UpdateItem) AddKey(exp Expression) {
@@ -158,10 +148,6 @@ type CreateTable struct {
 		ReadCapacityUnits  int
 		WriteCapacityUnits int
 	}
-}
-
-func (d CreateTable) Decode(r io.ReadCloser) error {
-	return nil
 }
 
 func (c *CreateTable) AddDefinition(d Definition) {
@@ -209,10 +195,6 @@ type DeleteItem struct {
 	Key       map[string]Value
 }
 
-func (d DeleteItem) Decode(r io.ReadCloser) error {
-	return nil
-}
-
 func (d *DeleteItem) AddKey(exp Expression) {
 	if d.Key == nil {
 		d.Key = map[string]Value{}
@@ -224,14 +206,54 @@ type DeleteTable struct {
 	TableName string
 }
 
-func (d DeleteTable) Decode(r io.ReadCloser) error {
+// Results
+
+type QueryResult struct {
+	ConsumedCapacity struct {
+		CapcityUnits int
+		TableName    string
+	}
+	Count            int
+	Items            []map[string]Item
+	LastEvaluatedKey map[string]Value
+
+	columns []string `json:"-"`
+	row     int      `json:"-"`
+}
+
+func (q *QueryResult) Columns() []string {
+	if q.Count > 0 && len(q.columns) == 0 {
+		for k, _ := range q.Items[0] {
+			q.columns = append(q.columns, k)
+		}
+	}
+	return q.columns
+}
+
+func (q *QueryResult) Close() error {
 	return nil
 }
 
-func operation(r Request) Operation {
-	switch r.(type) {
-	case Query:
-		return Operation("DynamoDB_20120810.Query")
+func (q *QueryResult) Next(dest []driver.Value) error {
+	if q.row >= len(q.Items) {
+		return io.EOF
 	}
-	return ""
+
+	item := q.Items[q.row]
+	for i, c := range q.Columns() {
+		dest[i] = item[c].Value()
+	}
+
+	q.row++
+	return nil
+}
+
+func decode(req Request, body io.ReadCloser) (driver.Rows, error) {
+	res := QueryResult{}
+	decoder := json.NewDecoder(body)
+	err := decoder.Decode(&res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }

@@ -21,8 +21,6 @@ package dsql
 import (
 	"database/sql"
 	"database/sql/driver"
-	"io"
-	"log"
 )
 
 func init() {
@@ -75,36 +73,10 @@ func (cn *conn) Query(query string, args []driver.Value) (driver.Rows, error) {
 	}
 	defer body.Close()
 
-	err = req.Decode(body)
+	res, err := decode(req, body)
 	if err != nil {
 		return nil, err
 	}
 
-	return &rows{req: req}, nil
-}
-
-type rows struct {
-	req  Request
-	done bool
-}
-
-func (r *rows) Columns() []string {
-	return []string{"id", "email"}
-}
-
-func (r *rows) Close() error {
-	return nil
-}
-
-func (r *rows) Next(dest []driver.Value) error {
-	if r.done {
-		log.Print("done")
-		return io.EOF
-	} else {
-		dest[0] = 1
-		dest[1] = "test@example.com"
-		r.done = true
-	}
-
-	return nil
+	return res, nil
 }
