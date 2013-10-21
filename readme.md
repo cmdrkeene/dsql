@@ -52,7 +52,7 @@ Here are some statements the parser understands:
 
 ## TODO
 
-* test against fake dynamo
+* interpolate args in query
 * test against actual dynamo
 * insert multiple items
 * create table with local secondary index
