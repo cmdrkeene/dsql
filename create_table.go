@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+var DefinitionTypes = map[string]string{
+	"string":    "S",
+	"stringset": "SS",
+	"number":    "N",
+	"numberset": "NS",
+	"binary":    "B",
+	"binaryset": "BS",
+}
+
 type AttributeDefinition struct {
 	AttributeName string
 	AttributeType string

@@ -11,15 +11,6 @@ var TokenTypes = map[Token]string{
 	String: "S",
 }
 
-var DefinitionTypes = map[string]string{
-	"string":    "S",
-	"stringset": "SS",
-	"number":    "N",
-	"numberset": "NS",
-	"binary":    "B",
-	"binaryset": "BS",
-}
-
 func NewValue(t Token, s string) Value {
 	return Value{TokenTypes[t], trim(s)}
 }
