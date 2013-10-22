@@ -58,7 +58,7 @@ Here are some statements the parser understands:
 
 ## NICE TO HAVE
 
-* `Expected` conditions (how does this map to SQL?)
+* `Expected` conditions - perhaps use "WHERE NOT EXISTS (SELECT * FROM users WHERE id = 1)"
 * `BatchWriteItem` is smarter than 25 item cap (batch in driver)
 * `Scan` operations (maybe a cursor?)
 * `RETURNING` keyword for `ReturnValues`
