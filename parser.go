@@ -59,7 +59,20 @@ func (p *Parser) Parse() (req Request, err error) {
 
 func (p *Parser) Select() Request {
 	query := Query{}
+	p.columns(&query)
+	p.from(&query)
+	p.limit(&query)
+	p.where(&query)
+	p.limit(&query)
+	return query
+}
 
+func (p *Parser) from(query *Query) {
+	p.matchS(Keyword, "from")
+	query.TableName = p.match(Identifier)
+}
+
+func (p *Parser) columns(query *Query) {
 	p.match(Keyword)
 
 	if p.token() == Wildcard {
@@ -74,20 +87,6 @@ func (p *Parser) Select() Request {
 			query.AddColumn(id)
 		}
 	}
-
-	p.matchS(Keyword, "from")
-
-	query.TableName = p.match(Identifier)
-
-	if p.token() == EOF {
-		return query
-	}
-
-	p.limit(&query)
-	p.where(&query)
-	p.limit(&query)
-
-	return query
 }
 
 func (p *Parser) limit(query *Query) {
