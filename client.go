@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/bmizerany/aws4"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -85,6 +86,7 @@ func (c *DynamoClient) Post(req Request) (io.ReadCloser, error) {
 	}
 
 	if response.StatusCode != http.StatusOK {
+		log.Print(string(b))
 		return nil, c.decodeError(response.Body)
 	}
 
