@@ -83,6 +83,14 @@ func (p *Parser) Select() Request {
 		return query
 	}
 
+	p.limit(&query)
+	p.where(&query)
+	p.limit(&query)
+
+	return query
+}
+
+func (p *Parser) limit(query *Query) {
 	if p.token() == Keyword && p.text() == "limit" {
 		p.consume()
 		limit, err := strconv.Atoi(p.match(Number))
@@ -91,7 +99,9 @@ func (p *Parser) Select() Request {
 		}
 		query.Limit = limit
 	}
+}
 
+func (p *Parser) where(query *Query) {
 	if p.token() == Keyword && p.text() == "where" {
 		p.consume()
 		query.AddCondition(p.expr())
@@ -100,17 +110,6 @@ func (p *Parser) Select() Request {
 			query.AddCondition(p.expr())
 		}
 	}
-
-	if p.token() == Keyword && p.text() == "limit" {
-		p.consume()
-		limit, err := strconv.Atoi(p.match(Number))
-		if err != nil {
-			panic(err)
-		}
-		query.Limit = limit
-	}
-
-	return query
 }
 
 func (p *Parser) Insert() Request {
