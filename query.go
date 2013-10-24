@@ -101,7 +101,9 @@ func (q *QueryResult) Next(dest []driver.Value) error {
 
 	item := q.Items[q.row]
 	for i, c := range q.Columns() {
-		dest[i] = item[c].Value()
+		if v := item[c].Value(); v != nil {
+			dest[i] = v
+		}
 	}
 
 	q.row++

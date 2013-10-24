@@ -16,7 +16,8 @@ func TestQueryResult(t *testing.T) {
     "Items": [
       {
         "id": {"N": "1"},
-        "email": {"S": "test@example.com"}
+        "email": {"S": "test@example.com"},
+        "bio": null
       }
     ]
   }`))
@@ -27,17 +28,18 @@ func TestQueryResult(t *testing.T) {
 		t.Error(err)
 	}
 
-	if !reflect.DeepEqual(res.Columns(), []string{"id", "email"}) {
+	cols := []string{"id", "email", "bio"}
+	if !reflect.DeepEqual(res.Columns(), cols) {
 		t.Error("bad columns", res.Columns())
 	}
 
-	dest := make([]driver.Value, 2)
+	dest := make([]driver.Value, len(cols))
 	err = res.Next(dest)
 	if err != nil {
 		t.Error(err)
 	}
 
-	expected := []driver.Value{1, []byte("test@example.com")}
+	expected := []driver.Value{1, []byte("test@example.com"), nil}
 	if !reflect.DeepEqual(dest, expected) {
 		t.Error("expected ", expected)
 		t.Error("actual   ", dest)
