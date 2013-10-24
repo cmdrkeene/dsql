@@ -27,6 +27,7 @@ type Query struct {
 	TableName       string
 	AttributesToGet []string
 	KeyConditions   map[string]KeyCondition
+	Limit           int
 }
 
 func (q *Query) AddColumn(col string) {

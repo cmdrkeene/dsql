@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -82,13 +83,31 @@ func (p *Parser) Select() Request {
 		return query
 	}
 
-	p.matchS(Keyword, "where")
+	if p.token() == Keyword && p.text() == "limit" {
+		p.consume()
+		limit, err := strconv.Atoi(p.match(Number))
+		if err != nil {
+			panic(err)
+		}
+		query.Limit = limit
+	}
 
-	query.AddCondition(p.expr())
-
-	for p.token() == Operator {
-		p.match(Operator)
+	if p.token() == Keyword && p.text() == "where" {
+		p.consume()
 		query.AddCondition(p.expr())
+		for p.token() == Operator {
+			p.match(Operator)
+			query.AddCondition(p.expr())
+		}
+	}
+
+	if p.token() == Keyword && p.text() == "limit" {
+		p.consume()
+		limit, err := strconv.Atoi(p.match(Number))
+		if err != nil {
+			panic(err)
+		}
+		query.Limit = limit
 	}
 
 	return query
