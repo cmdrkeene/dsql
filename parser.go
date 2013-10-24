@@ -59,6 +59,7 @@ func (p *Parser) Parse() (req Request, err error) {
 
 func (p *Parser) Select() Request {
 	query := Query{}
+	query.ScanIndexForward = false // default id desc
 	p.columns(&query)
 	p.from(&query)
 	p.limit(&query)

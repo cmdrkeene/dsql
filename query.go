@@ -24,10 +24,11 @@ type KeyCondition struct {
 }
 
 type Query struct {
-	TableName       string
-	AttributesToGet []string
-	KeyConditions   map[string]KeyCondition
-	Limit           int
+	TableName        string
+	AttributesToGet  []string
+	KeyConditions    map[string]KeyCondition
+	ScanIndexForward bool
+	Limit            int
 }
 
 func (q *Query) AddColumn(col string) {
