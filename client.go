@@ -86,11 +86,17 @@ func (c *DynamoClient) Post(req Request) (io.ReadCloser, error) {
 	}
 
 	if response.StatusCode != http.StatusOK {
-		log.Print(string(b))
+		c.logRequest(b)
 		return nil, c.decodeError(response.Body)
 	}
 
 	return response.Body, nil
+}
+
+func (c *DynamoClient) logRequest(src []byte) {
+	var dst bytes.Buffer
+	json.Indent(&dst, src, "", "  ")
+	log.Print(fmt.Sprintf("dynamo: failed request\n%s", dst.String()))
 }
 
 func (c *DynamoClient) decodeError(r io.ReadCloser) error {
