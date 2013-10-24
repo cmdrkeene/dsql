@@ -110,3 +110,11 @@ type DynamoError struct {
 func (e *DynamoError) Error() string {
 	return fmt.Sprintf("dynamo: %s (%s)", e.Message, e.Type)
 }
+
+func operation(r Request) string {
+	switch r.(type) {
+	case Query:
+		return "DynamoDB_20120810.Query"
+	}
+	return ""
+}
