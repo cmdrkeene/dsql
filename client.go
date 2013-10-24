@@ -39,6 +39,10 @@ func GetClient(name string) Client {
 }
 
 func NewClient(name string) Client {
+	return NewDynamoClient(name)
+}
+
+func NewDynamoClient(name string) *DynamoClient {
 	u, err := url.Parse(name)
 	if err != nil {
 		panic(err)
@@ -55,13 +59,13 @@ func NewClient(name string) Client {
 	}
 }
 
-func (d *DynamoClient) Post(req Request) (io.ReadCloser, error) {
+func (c *DynamoClient) Post(req Request) (io.ReadCloser, error) {
 	b, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest("POST", d.urlStr, bytes.NewBuffer(b))
+	request, err := http.NewRequest("POST", c.urlStr, bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +74,7 @@ func (d *DynamoClient) Post(req Request) (io.ReadCloser, error) {
 	request.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	request.Header.Set("X-Amz-Target", operation(req))
 
-	err = aws4.Sign(d.keys, request)
+	err = aws4.Sign(c.keys, request)
 	if err != nil {
 		return nil, err
 	}
@@ -80,21 +84,29 @@ func (d *DynamoClient) Post(req Request) (io.ReadCloser, error) {
 		return nil, err
 	}
 
+	if response.StatusCode != http.StatusOK {
+		return nil, c.decodeError(response.Body)
+	}
+
 	return response.Body, nil
 }
 
-type MockClient struct {
-	OnPost func(Request) (io.ReadCloser, error)
-}
-
-func (m MockClient) Post(r Request) (io.ReadCloser, error) {
-	return m.OnPost(r)
-}
-
-func operation(r Request) string {
-	switch r.(type) {
-	case Query:
-		return "DynamoDB_20120810.Query"
+func (c *DynamoClient) decodeError(r io.ReadCloser) error {
+	defer r.Close()
+	var e DynamoError
+	decoder := json.NewDecoder(r)
+	err := decoder.Decode(&e)
+	if err != nil {
+		return err
 	}
-	return ""
+	return &e
+}
+
+type DynamoError struct {
+	Type    string `json:"__type"`
+	Message string `json:"message"`
+}
+
+func (e *DynamoError) Error() string {
+	return fmt.Sprintf("dynamo: %s (%s)", e.Message, e.Type)
 }

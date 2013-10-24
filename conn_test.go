@@ -116,3 +116,19 @@ func TestStatementPrepare(t *testing.T) {
 		t.Error("actual   ", actual)
 	}
 }
+
+type MockClient struct {
+	OnPost func(Request) (io.ReadCloser, error)
+}
+
+func (m MockClient) Post(r Request) (io.ReadCloser, error) {
+	return m.OnPost(r)
+}
+
+func operation(r Request) string {
+	switch r.(type) {
+	case Query:
+		return "DynamoDB_20120810.Query"
+	}
+	return ""
+}
