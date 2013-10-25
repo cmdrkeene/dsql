@@ -4,9 +4,6 @@ package dsql
 import (
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
-	"regexp"
-	"strconv"
 )
 
 func init() {
@@ -75,12 +72,11 @@ func (cn *conn) Query(query string, args []driver.Value) (driver.Rows, error) {
 }
 
 func (cn *conn) query(query string, args []driver.Value) (driver.Rows, error) {
-	if len(args) > 0 {
-		prepared, err := statement(query).prepare(args)
-		if err != nil {
-			return nil, err
-		}
-		query = prepared
+	stmt := Statement{query, args}
+
+	query, err := stmt.Prepare()
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := Parse(query)
@@ -95,27 +91,4 @@ func (cn *conn) query(query string, args []driver.Value) (driver.Rows, error) {
 	defer body.Close()
 
 	return req.Rows(body)
-}
-
-type statement string
-
-var statementPlaceholders = regexp.MustCompile("(\\$\\d+)+")
-
-func (stmt statement) prepare(args []driver.Value) (prepared string, err error) {
-	query := string(stmt)
-	prepared = statementPlaceholders.ReplaceAllStringFunc(query, func(match string) string {
-		offset, _ := strconv.Atoi(match[1:])
-		return stmt.quote(args[offset-1])
-	})
-	return prepared, err
-}
-
-func (stmt statement) quote(v driver.Value) (quoted string) {
-	switch v.(type) {
-	case string, []byte:
-		quoted = fmt.Sprintf("\"%v\"", v)
-	default:
-		quoted = fmt.Sprintf("%v", v)
-	}
-	return quoted
 }

@@ -11,7 +11,7 @@ Package implements a `database/sql` driver:
 
     func main() {
       db, _ := sql.Open("dynamodb", "dynamodb://access:secret@us-east-1")
-      rows, _ := db.Query("SELECT name FROM users WHERE id=$1", 123)
+      rows, _ := db.Query("SELECT name FROM users WHERE id=?", 123)
       // ...
     }
 

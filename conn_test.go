@@ -2,7 +2,7 @@ package dsql
 
 import (
 	"database/sql"
-	"database/sql/driver"
+
 	"errors"
 	"io"
 	"io/ioutil"
@@ -34,7 +34,7 @@ func TestExecInsert(t *testing.T) {
 		},
 	}
 
-	result, err := db.Exec("INSERT INTO users (id, email) VALUES ($1, $2)", 1, "test@example.com")
+	result, err := db.Exec("INSERT INTO users (id, email) VALUES (?, ?)", 1, "test@example.com")
 	if err != nil {
 		t.Error(err)
 	}
@@ -162,21 +162,6 @@ func TestQueryInsert(t *testing.T) {
 	_, err = db.Query(`INSERT INTO users (id, name) VALUES (1, "a")`)
 	if err != nil {
 		t.Error(err)
-	}
-}
-
-func TestStatementPrepare(t *testing.T) {
-	s := statement("INSERT INTO users (id, names) VALUES ($1, $2)")
-
-	expected := `INSERT INTO users (id, names) VALUES (1, "a")`
-	actual, err := s.prepare([]driver.Value{1, "a"})
-	if err != nil {
-		t.Error(err)
-	}
-
-	if actual != expected {
-		t.Error("expected ", expected)
-		t.Error("actual   ", actual)
 	}
 }
 
