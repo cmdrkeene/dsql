@@ -12,23 +12,10 @@ func TestStatementPrepare(t *testing.T) {
 	}
 
 	expected := `INSERT INTO users (id, names) VALUES (1, "a")`
-	actual, err := stmt.Prepare()
-	if err != nil {
-		t.Error(err)
-	}
+	actual := stmt.Prepare()
 
 	if actual != expected {
 		t.Error("expected ", expected)
 		t.Error("actual   ", actual)
-	}
-}
-
-func BenchmarkStatementPrepareString(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		s := &Statement{
-			"INSERT INTO users (id, names) VALUES (?, ?)",
-			[]driver.Value{1, "a"},
-		}
-		s.prepareString()
 	}
 }

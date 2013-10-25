@@ -11,12 +11,7 @@ type Statement struct {
 	args  []driver.Value
 }
 
-func (s *Statement) Prepare() (string, error) {
-	// return s.prepareRegexp(), nil
-	return s.prepareString(), nil
-}
-
-func (s *Statement) prepareString() string {
+func (s *Statement) Prepare() string {
 	for _, v := range s.args {
 		s.query = strings.Replace(s.query, "?", s.quote(v), 1)
 	}

@@ -74,10 +74,7 @@ func (cn *conn) Query(query string, args []driver.Value) (driver.Rows, error) {
 func (cn *conn) query(query string, args []driver.Value) (driver.Rows, error) {
 	stmt := Statement{query, args}
 
-	query, err := stmt.Prepare()
-	if err != nil {
-		return nil, err
-	}
+	query = stmt.Prepare()
 
 	req, err := Parse(query)
 	if err != nil {
