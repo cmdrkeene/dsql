@@ -1,6 +1,6 @@
 # DSQL - DynamoDB Structured Query Language
 
-EXPERIMENTAL SQL dialect for interacting with DynamoDB.
+SQL dialect for interacting with DynamoDB.
 
 Package implements a `database/sql` driver:
 
