@@ -24,7 +24,7 @@ func TestClientBadRequest(t *testing.T) {
 
 	client := NewDynamoClient("dyanmodb://access:secret@us-east-1")
 	client.urlStr = ts.URL
-	_, actual := client.Post(Query{})
+	_, actual := client.Post(&Query{})
 
 	expected := DynamoError{
 		Type:    "com.amazonaws.dynamodb.v20111205#ProvisionedThroughputExceededException",

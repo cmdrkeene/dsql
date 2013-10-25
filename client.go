@@ -15,7 +15,12 @@ import (
 )
 
 type Request interface {
-	Result(io.ReadCloser) (driver.Rows, error)
+	Rows(io.ReadCloser) (driver.Rows, error)
+}
+
+type Response interface {
+	Columns() []string
+	Values() [][]driver.Value
 }
 
 var Clients = map[string]Client{} // for testing
@@ -121,7 +126,7 @@ func (e *DynamoError) Error() string {
 
 func operation(r Request) string {
 	switch r.(type) {
-	case Query:
+	case *Query:
 		return "DynamoDB_20120810.Query"
 	}
 	return ""

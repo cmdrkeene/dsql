@@ -6,6 +6,8 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -83,12 +85,23 @@ func TestQuerySelect(t *testing.T) {
 		t.Error(err)
 	}
 
+	cols, err := rows.Columns()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(cols, []string{"id", "email"}) {
+		t.Error("bad columns", cols)
+	}
+
 	if !rows.Next() {
 		t.Fatal("expected row")
 	}
 
 	var id int
 	var email string
+
+	log.Printf("%#v", rows)
 
 	err = rows.Scan(&id, &email)
 	if err != nil {

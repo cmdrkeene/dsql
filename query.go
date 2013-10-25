@@ -2,8 +2,8 @@ package dsql
 
 import (
 	"database/sql/driver"
-	"encoding/json"
 	"io"
+	"log"
 )
 
 type Item map[string]Attribute
@@ -60,54 +60,17 @@ func (q *Query) AddCondition(exp Expression) {
 	}
 }
 
-func (q Query) Result(body io.ReadCloser) (driver.Rows, error) {
-	res := QueryResult{}
-	decoder := json.NewDecoder(body)
-	err := decoder.Decode(&res)
+func (q *Query) Rows(body io.ReadCloser) (rows driver.Rows, err error) {
+	dec := ResponseDecoder{body, &QueryResponse{}}
+	err = dec.Decode()
 	if err != nil {
 		return nil, err
 	}
-	return &res, nil
-}
 
-type QueryResult struct {
-	ConsumedCapacity struct {
-		CapcityUnits int
-		TableName    string
-	}
-	Count            int
-	Items            []Item
-	LastEvaluatedKey Item
+	rows = NewRows(dec.response)
 
-	columns []string `json:"-"`
-	row     int      `json:"-"`
-}
+	log.Print("response: ", dec.response)
+	log.Print("rows: ", rows)
 
-func (q *QueryResult) Columns() []string {
-	if q.Count > 0 && len(q.columns) == 0 {
-		for k, _ := range q.Items[0] {
-			q.columns = append(q.columns, k)
-		}
-	}
-	return q.columns
-}
-
-func (q *QueryResult) Close() error {
-	return nil
-}
-
-func (q *QueryResult) Next(dest []driver.Value) error {
-	if q.row >= len(q.Items) {
-		return io.EOF
-	}
-
-	item := q.Items[q.row]
-	for i, c := range q.Columns() {
-		if v := item[c].Value(); v != nil {
-			dest[i] = v
-		}
-	}
-
-	q.row++
-	return nil
+	return rows, nil
 }

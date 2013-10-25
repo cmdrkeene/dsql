@@ -5,10 +5,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-
-	"strconv"
-
 	"regexp"
+	"strconv"
 )
 
 func init() {
@@ -96,12 +94,7 @@ func (cn *conn) query(query string, args []driver.Value) (driver.Rows, error) {
 	}
 	defer body.Close()
 
-	res, err := req.Result(body)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return req.Rows(body)
 }
 
 type statement string

@@ -26,7 +26,7 @@ func TestParseError(t *testing.T) {
 
 func TestParseSelectWildcard(t *testing.T) {
 	source := "select * from messages;"
-	expected := Query{TableName: "messages"}
+	expected := &Query{TableName: "messages"}
 
 	actual, err := Parse(source)
 	if err != nil {
@@ -41,7 +41,7 @@ func TestParseSelectWildcard(t *testing.T) {
 
 func TestParseSelectWithoutSemicolon(t *testing.T) {
 	source := "select * from messages"
-	expected := Query{TableName: "messages"}
+	expected := &Query{TableName: "messages"}
 
 	actual, err := Parse(source)
 	if err != nil {
@@ -56,7 +56,7 @@ func TestParseSelectWithoutSemicolon(t *testing.T) {
 
 func TestParseSelectColumns(t *testing.T) {
 	source := "select id, name from messages;"
-	expected := Query{
+	expected := &Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
 	}
@@ -74,7 +74,7 @@ func TestParseSelectColumns(t *testing.T) {
 
 func TestParseSelectLimit(t *testing.T) {
 	source := "select id, name from messages limit 10;"
-	expected := Query{
+	expected := &Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
 		Limit:           10,
@@ -93,7 +93,7 @@ func TestParseSelectLimit(t *testing.T) {
 
 func TestParseSelectSingleCondition(t *testing.T) {
 	source := "select id, name from messages where id = 1;"
-	expected := Query{
+	expected := &Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
 		KeyConditions: map[string]KeyCondition{
@@ -117,7 +117,7 @@ func TestParseSelectSingleCondition(t *testing.T) {
 
 func TestParseSelectMultipleConditions(t *testing.T) {
 	source := `select id, name from messages where id = 1 AND name = "a";`
-	expected := Query{
+	expected := &Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
 		KeyConditions: map[string]KeyCondition{
@@ -145,7 +145,7 @@ func TestParseSelectMultipleConditions(t *testing.T) {
 
 func TestParseSelectMultipleConditionsOr(t *testing.T) {
 	source := `select id, name from messages where id = 1 AND name = "a" OR name = "b";`
-	expected := Query{
+	expected := &Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
 		KeyConditions: map[string]KeyCondition{
@@ -173,7 +173,7 @@ func TestParseSelectMultipleConditionsOr(t *testing.T) {
 
 func TestParseSelectMultipleConditionsBetween(t *testing.T) {
 	source := `select id, name from messages where id = 1 AND name BETWEEN("a", "z");`
-	expected := Query{
+	expected := &Query{
 		TableName:       "messages",
 		AttributesToGet: []string{"id", "name"},
 		KeyConditions: map[string]KeyCondition{

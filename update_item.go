@@ -35,6 +35,6 @@ func (u *UpdateItem) AddUpdate(exp Expression) {
 	}
 }
 
-func (u UpdateItem) Result(body io.ReadCloser) (driver.Rows, error) {
+func (u UpdateItem) Rows(body io.ReadCloser) (driver.Rows, error) {
 	return nil, nil
 }

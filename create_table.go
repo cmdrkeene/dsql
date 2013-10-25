@@ -66,6 +66,6 @@ func (c *CreateTable) AddThroughput(exp Expression) {
 	}
 }
 
-func (c CreateTable) Result(body io.ReadCloser) (driver.Rows, error) {
+func (c CreateTable) Rows(body io.ReadCloser) (driver.Rows, error) {
 	return nil, nil
 }

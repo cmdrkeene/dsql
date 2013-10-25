@@ -58,13 +58,13 @@ func (p *Parser) Parse() (req Request, err error) {
 }
 
 func (p *Parser) Select() Request {
-	query := Query{}
+	query := &Query{}
 	query.ScanIndexForward = false // default id desc
-	p.columns(&query)
-	p.from(&query)
-	p.limit(&query)
-	p.where(&query)
-	p.limit(&query)
+	p.columns(query)
+	p.from(query)
+	p.limit(query)
+	p.where(query)
+	p.limit(query)
 	return query
 }
 

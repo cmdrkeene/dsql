@@ -10,6 +10,6 @@ type PutItem struct {
 	Item      Item
 }
 
-func (p PutItem) Result(body io.ReadCloser) (driver.Rows, error) {
+func (p PutItem) Rows(body io.ReadCloser) (driver.Rows, error) {
 	return nil, nil
 }

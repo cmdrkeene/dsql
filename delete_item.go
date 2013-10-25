@@ -17,6 +17,6 @@ func (d *DeleteItem) AddKey(exp Expression) {
 	d.Key[exp.Identifier] = exp.Attribute()
 }
 
-func (d DeleteItem) Result(body io.ReadCloser) (driver.Rows, error) {
+func (d DeleteItem) Rows(body io.ReadCloser) (driver.Rows, error) {
 	return nil, nil
 }
