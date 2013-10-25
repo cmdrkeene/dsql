@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"log"
+
 	"reflect"
 	"strings"
 	"testing"
@@ -100,8 +100,6 @@ func TestQuerySelect(t *testing.T) {
 
 	var id int
 	var email string
-
-	log.Printf("%#v", rows)
 
 	err = rows.Scan(&id, &email)
 	if err != nil {
