@@ -10,6 +10,52 @@ import (
 	"testing"
 )
 
+func TestExecInsert(t *testing.T) {
+	name := "dyanmodb://access:secret@us-east-1"
+
+	db, err := sql.Open("dynamodb", name)
+	if err != nil {
+		t.Error(err)
+	}
+
+	Clients[name] = MockClient{
+		OnPost: func(Request) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader(`{
+				"Count": 1,
+				"Items": [
+					{
+						"id": {"N": "1"},
+						"email": {"S": "test@example.com"}
+					}
+				]
+			}`)), nil
+		},
+	}
+
+	result, err := db.Exec("INSERT INTO users (id, email) VALUES ($1, $2)", 1, "test@example.com")
+	if err != nil {
+		t.Error(err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		t.Error(err)
+	}
+	if id != 0 {
+		t.Error("expected ", 0)
+		t.Error("actual   ", id)
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 1 {
+		t.Error("expected ", 1)
+		t.Error("actual   ", n)
+	}
+}
+
 func TestQuerySelect(t *testing.T) {
 	name := "dyanmodb://access:secret@us-east-1"
 
