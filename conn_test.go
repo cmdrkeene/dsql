@@ -115,6 +115,10 @@ func TestQuerySelect(t *testing.T) {
 	if email != "test@example.com" {
 		t.Error("email", email)
 	}
+
+	if rows.Next() {
+		t.Error("should be EOF")
+	}
 }
 
 func TestQueryClientError(t *testing.T) {

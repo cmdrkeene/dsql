@@ -12,6 +12,9 @@ type QueryResponse struct {
 	LastEvaluatedKey Item
 }
 
+// problematic due to the schemaless nature of dynamo
+// driver wants fixed-width scan operations but items are variable-width
+// consider preprocessing and properly accepting nil gaps
 func (q *QueryResponse) Columns() (cols []string) {
 	for id, _ := range q.Items[0] {
 		cols = append(cols, id)

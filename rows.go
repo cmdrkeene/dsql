@@ -1,40 +1,23 @@
+// Might want to annotate with special info: consumed units, etc.
 package dsql
 
 import (
-	"io"
-
 	"database/sql/driver"
+	"io"
 )
 
 func NewRows(res Response) *Rows {
 	return &Rows{
-		response: res,
-		cols:     res.Columns(),
-		values:   res.Values(),
+		cols:   res.Columns(),
+		values: res.Values(),
 	}
 }
 
 // driver implentation of driver.Rows interface
-// also provides access to the raw response object for advanced applications
 type Rows struct {
-	response interface{}
-
-	// value representations of underlying response
 	values [][]driver.Value
-
-	// names of columns in response
-	// this is problematic due to the schemaless nature of dynamo
-	// driver wants fixed-width scan operations but items are variable-width
-	// consider preprocessing and properly accepting nil gaps
-	cols []string
-
-	// current position in Next() operations
-	idx int
-}
-
-// There might be a conventional name for this
-func (r *Rows) Raw() interface{} {
-	return r.response
+	cols   []string
+	idx    int
 }
 
 func (r *Rows) Columns() []string {
@@ -46,7 +29,7 @@ func (r *Rows) Close() error {
 }
 
 func (r *Rows) Next(dest []driver.Value) error {
-	if r.idx > len(r.values) {
+	if r.idx == len(r.values) {
 		return io.EOF
 	}
 
@@ -55,6 +38,8 @@ func (r *Rows) Next(dest []driver.Value) error {
 			dest[i] = v
 		}
 	}
+
+	r.idx++
 
 	return nil
 }

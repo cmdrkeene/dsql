@@ -3,7 +3,6 @@ package dsql
 import (
 	"database/sql/driver"
 	"io"
-	"log"
 )
 
 type Item map[string]Attribute
@@ -67,10 +66,5 @@ func (q *Query) Rows(body io.ReadCloser) (rows driver.Rows, err error) {
 		return nil, err
 	}
 
-	rows = NewRows(dec.response)
-
-	log.Print("response: ", dec.response)
-	log.Print("rows: ", rows)
-
-	return rows, nil
+	return NewRows(dec.response), nil
 }
