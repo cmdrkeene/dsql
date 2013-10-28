@@ -69,11 +69,14 @@ func TestQuerySelect(t *testing.T) {
 	Clients[name] = MockClient{
 		OnPost: func(Request) (io.ReadCloser, error) {
 			return ioutil.NopCloser(strings.NewReader(`{
-				"Count": 1,
+				"Count": 2,
 				"Items": [
 					{
 						"id": {"N": "1"},
 						"email": {"S": "test@example.com"}
+					},
+					{
+						"id": {"N": "2"}
 					}
 				]
 			}`)), nil
@@ -93,6 +96,8 @@ func TestQuerySelect(t *testing.T) {
 	if !reflect.DeepEqual(cols, []string{"id", "email"}) {
 		t.Error("bad columns", cols)
 	}
+
+	// row 1
 
 	if !rows.Next() {
 		t.Fatal("expected row")
@@ -114,6 +119,29 @@ func TestQuerySelect(t *testing.T) {
 		t.Error("email", email)
 	}
 
+	// row 2
+
+	if !rows.Next() {
+		t.Fatal("expected row")
+	}
+
+	var id2 int
+	var email2 string
+
+	err = rows.Scan(&id2, &email2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if id2 != 2 {
+		t.Error("id", id2)
+	}
+
+	if email2 != "" {
+		t.Error("email", email2)
+	}
+
+	// eof
 	if rows.Next() {
 		t.Error("should be EOF")
 	}

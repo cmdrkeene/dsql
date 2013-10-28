@@ -32,14 +32,9 @@ func (r *Rows) Next(dest []driver.Value) error {
 	if r.idx == len(r.values) {
 		return io.EOF
 	}
-
 	for i, v := range r.values[r.idx] {
-		if v != nil {
-			dest[i] = v
-		}
+		dest[i] = v
 	}
-
 	r.idx++
-
 	return nil
 }

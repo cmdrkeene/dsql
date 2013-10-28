@@ -32,10 +32,13 @@ func (q *QueryResponse) Values() (values [][]driver.Value) {
 	cols := q.Columns()
 
 	for _, item := range q.Items {
-		row := []driver.Value{}
-		for _, col := range cols {
-			if v := item[col].Value(); v != nil {
-				row = append(row, v)
+		row := make([]driver.Value, len(cols))
+		for j, col := range cols {
+			v := item[col].Value()
+			if v != nil {
+				row[j] = v
+			} else {
+				row[j] = []byte{}
 			}
 		}
 		values = append(values, row)
