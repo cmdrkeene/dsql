@@ -59,12 +59,17 @@ func (q *Query) AddCondition(exp Expression) {
 	}
 }
 
-func (q *Query) Rows(body io.ReadCloser) (rows driver.Rows, err error) {
-	dec := ResponseDecoder{body, &QueryResponse{}}
-	err = dec.Decode()
+func (q *Query) Rows(body io.ReadCloser) (driver.Rows, error) {
+	res := &QueryResponse{}
+	dec := ResponseDecoder{body, res}
+	err := dec.Decode()
 	if err != nil {
 		return nil, err
 	}
 
-	return NewRows(dec.response), nil
+	if q.AttributesToGet != nil {
+		res.cols = q.AttributesToGet
+	}
+
+	return &Rows{cols: res.Columns(), values: res.Values()}, nil
 }

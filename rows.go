@@ -6,13 +6,6 @@ import (
 	"io"
 )
 
-func NewRows(res Response) *Rows {
-	return &Rows{
-		cols:   res.Columns(),
-		values: res.Values(),
-	}
-}
-
 // driver implentation of driver.Rows interface
 type Rows struct {
 	values [][]driver.Value

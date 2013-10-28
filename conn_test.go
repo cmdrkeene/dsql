@@ -58,6 +58,55 @@ func TestExecInsert(t *testing.T) {
 	}
 }
 
+func TestQuerySelectPreserveColumnOrder(t *testing.T) {
+	name := "dyanmodb://access:secret@us-east-1"
+	db, err := sql.Open("dynamodb", name)
+	if err != nil {
+		t.Error(err)
+	}
+	Clients[name] = MockClient{
+		OnPost: func(Request) (io.ReadCloser, error) {
+			return ioutil.NopCloser(strings.NewReader(`{
+				"Count": 2,
+				"Items": [
+					{
+						"a": {"N": "1"},
+						"b": {"N": "2"},
+						"c": {"N": "3"},
+						"d": {"N": "4"}
+					},
+					{
+						"d": {"N": "4"},
+						"c": {"N": "3"},
+						"b": {"N": "2"},
+						"a": {"N": "1"}
+					}
+				]
+			}`)), nil
+		},
+	}
+
+	rows, _ := db.Query("SELECT d, c, a, b FROM users;")
+	cols, _ := rows.Columns()
+	expected := []string{"d", "c", "a", "b"}
+
+	if !reflect.DeepEqual(expected, cols) {
+		t.Error("expected ", expected)
+		t.Error("actual   ", cols)
+	}
+
+	rows.Next()
+
+	var a, b, c, d int
+
+	rows.Scan(&d, &c, &a, &b)
+
+	if a != 1 && b != 2 && c != 3 && d != 4 {
+		t.Error("expected ", 4, 3, 1, 2)
+		t.Error("actual   ", d, c, a, b)
+	}
+}
+
 func TestQuerySelect(t *testing.T) {
 	name := "dyanmodb://access:secret@us-east-1"
 
